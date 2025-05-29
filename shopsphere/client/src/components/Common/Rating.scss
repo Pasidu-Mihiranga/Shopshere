@@ -1,0 +1,75 @@
+/* Rating.scss */
+.rating {
+    display: inline-flex;
+    align-items: center;
+    
+    .star {
+      display: inline-block;
+      position: relative;
+      color: #ddd; /* Empty star color */
+      cursor: default;
+      
+      &.star-full {
+        color: #FFB400; /* Full star color */
+      }
+      
+      &.star-half:after {
+        content: '★';
+        color: #FFB400;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 50%;
+        overflow: hidden;
+      }
+      
+      &.star-hover {
+        color: #FFD700; /* Hover star color */
+      }
+    }
+    
+    /* Rating sizes */
+    &.rating-small {
+      font-size: 1rem;
+      
+      .star {
+        margin-right: 2px;
+      }
+    }
+    
+    &.rating-medium {
+      font-size: 1.5rem;
+      
+      .star {
+        margin-right: 4px;
+      }
+    }
+    
+    &.rating-large {
+      font-size: 2rem;
+      
+      .star {
+        margin-right: 6px;
+      }
+    }
+    
+    /* Editable rating */
+    &.rating-editable {
+      .star {
+        cursor: pointer;
+      }
+    }
+  }
+  
+  .rating-text {
+    margin-left: 0.5rem;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+  }
+  
+  .rating-count {
+    margin-left: 0.5rem;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+  }
+  

@@ -1,0 +1,43 @@
+/* src/styles/variables.scss */
+:root {
+    /* Primary Colors */
+    --primary: #F15A24; /* Main Orange */
+    --primary-light: #FF9D5C;
+    --primary-dark: #D13800;
+    
+    /* Secondary Colors */
+    --secondary: #333333; /* Dark Gray */
+    --secondary-light: #666666;
+    --secondary-dark: #111111;
+    
+    /* Neutral Colors */
+    --white: #FFFFFF;
+    --light-gray: #F5F5F5;
+    --medium-gray: #E0E0E0;
+    --dark-gray: #888888;
+    
+    /* Status Colors */
+    --success: #4CAF50;
+    --warning: #FFC107;
+    --error: #F44336;
+    --info: #2196F3;
+    
+    /* Text Colors */
+    --text-primary: #212121;
+    --text-secondary: #757575;
+    --text-disabled: #9E9E9E;
+    
+    /* Border Colors */
+    --border-light: #E0E0E0;
+    --border-medium: #BDBDBD;
+    
+    /* Background Colors */
+    --bg-main: #FFFFFF;
+    --bg-light: #F9F9F9;
+    --bg-dark: #333333;
+    
+    /* Box Shadow */
+    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-dark: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }

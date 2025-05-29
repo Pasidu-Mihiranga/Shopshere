@@ -1,0 +1,100 @@
+/* Alert.scss */
+.alert {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    
+    .alert-content {
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .alert-icon {
+      margin-right: 0.75rem;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+    
+    .alert-message {
+      margin: 0;
+      flex: 1;
+    }
+    
+    .alert-close {
+      background: none;
+      border: none;
+      padding: 0;
+      margin-left: 1rem;
+      font-size: 1.5rem;
+      line-height: 1;
+      color: inherit;
+      cursor: pointer;
+      opacity: 0.6;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Alert variants */
+    &.alert-success {
+      background-color: rgba(76, 175, 80, 0.1);
+      border-color: rgba(76, 175, 80, 0.3);
+      color: #2e7d32;
+      
+      .alert-icon {
+        color: var(--success);
+      }
+    }
+    
+    &.alert-error {
+      background-color: rgba(244, 67, 54, 0.1);
+      border-color: rgba(244, 67, 54, 0.3);
+      color: #d32f2f;
+      
+      .alert-icon {
+        color: var(--error);
+      }
+    }
+    
+    &.alert-warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      border-color: rgba(255, 193, 7, 0.3);
+      color: #f57c00;
+      
+      .alert-icon {
+        color: var(--warning);
+      }
+    }
+    
+    &.alert-info {
+      background-color: rgba(33, 150, 243, 0.1);
+      border-color: rgba(33, 150, 243, 0.3);
+      color: #1976d2;
+      
+      .alert-icon {
+        color: var(--info);
+      }
+    }
+  }
+  
+  /* Animation for alert */
+  @keyframes alertFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .alert {
+    animation: alertFadeIn 0.3s ease-out;
+  }

@@ -1,0 +1,124 @@
+/* src/styles/typography.scss */
+:root {
+    /* Font Families */
+    --font-primary: 'Open Sans', sans-serif;
+    --font-heading: 'Montserrat', sans-serif;
+    
+    /* Font Sizes */
+    --font-size-xs: 0.75rem;   /* 12px */
+    --font-size-sm: 0.875rem;  /* 14px */
+    --font-size-md: 1rem;      /* 16px */
+    --font-size-lg: 1.125rem;  /* 18px */
+    --font-size-xl: 1.25rem;   /* 20px */
+    --font-size-2xl: 1.5rem;   /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    --font-size-4xl: 2.25rem;  /* 36px */
+    
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+  }
+  
+  /* Base Typography Styles */
+  body {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-normal);
+    color: var(--text-primary);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    margin-top: 0;
+  }
+  
+  h1 {
+    font-size: var(--font-size-4xl);
+  }
+  
+  h2 {
+    font-size: var(--font-size-3xl);
+  }
+  
+  h3 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  h4 {
+    font-size: var(--font-size-xl);
+  }
+  
+  h5 {
+    font-size: var(--font-size-lg);
+  }
+  
+  h6 {
+    font-size: var(--font-size-md);
+  }
+  
+  p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+  
+  a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+  }
+  
+  a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+  
+  .text-small {
+    font-size: var(--font-size-sm);
+  }
+  
+  .text-large {
+    font-size: var(--font-size-lg);
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-bold {
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .text-medium {
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .text-light {
+    font-weight: var(--font-weight-light);
+  }
+  
+  .text-primary {
+    color: var(--primary);
+  }
+  
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .text-error {
+    color: var(--error);
+  }
+  
+  .text-success {
+    color: var(--success);
+  }
