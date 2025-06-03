@@ -1,8 +1,8 @@
+// src/pages/ShopOwnerDashboard.js
 import React, { useState, useEffect } from 'react';
 import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-import ProductManagement from '../components/ShopOwnerDashboard/PromotionManagement';
+import ProductManagement from '../components/ShopOwnerDashboard/ProductManagement';
 import OrderManagement from '../components/ShopOwnerDashboard/OrderManagement';
 import PromotionManagement from '../components/ShopOwnerDashboard/PromotionManagement';
 import Analytics from '../components/ShopOwnerDashboard/Analytics';
@@ -10,7 +10,7 @@ import ShopSettings from '../components/ShopOwnerDashboard/ShopSettings';
 import './ShopOwnerDashboard.css';
 
 const ShopOwnerDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, apiClient } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('analytics');
@@ -18,20 +18,29 @@ const ShopOwnerDashboard = () => {
     totalProducts: 0,
     pendingOrders: 0,
     totalSales: 0,
-    totalCustomers: 0
+    totalCustomers: 0,
+    activePromotions: 0,
+    lowStockProducts: 0
   });
   const [shopInfo, setShopInfo] = useState({
     shopName: '',
     logo: '',
-    isVerified: false
+    isVerified: false,
+    createdAt: null
   });
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Debug logs
+  console.log('ShopOwnerDashboard - User:', user);
+  console.log('ShopOwnerDashboard - Location:', location.pathname);
   
   // Set active tab based on URL
   useEffect(() => {
     const path = location.pathname.split('/');
     const currentTab = path[path.length - 1];
+    
+    console.log('Setting active tab to:', currentTab);
     
     if (currentTab === 'seller-dashboard') {
       setActiveTab('analytics');
@@ -43,42 +52,88 @@ const ShopOwnerDashboard = () => {
   // Fetch shop stats and info
   useEffect(() => {
     const fetchShopData = async () => {
-      if (!user) return;
+      if (!user || user.userType !== 'shop_owner') return;
       
       try {
-        setLoading(true);
-        const [statsResponse, shopResponse] = await Promise.all([
-          axios.get('/api/shop/stats'),
-          axios.get('/api/shop/info')
-        ]);
+        setStatsLoading(true);
+        console.log('Fetching shop data...');
         
-        setShopStats(statsResponse.data);
-        setShopInfo(shopResponse.data);
+        // Try to fetch stats and info, but make them optional
+        const promises = [];
+        
+        // Shop stats - optional
+        promises.push(
+          apiClient.get('/api/shop/stats').catch(error => {
+            console.warn('Could not fetch shop stats:', error.message);
+            return { data: shopStats }; // Return default stats
+          })
+        );
+        
+        // Shop info - optional
+        promises.push(
+          apiClient.get('/api/shop/info').catch(error => {
+            console.warn('Could not fetch shop info:', error.message);
+            return { 
+              data: {
+                shopName: user.firstName ? `${user.firstName}'s Shop` : 'My Shop',
+                logo: '',
+                isVerified: false,
+                createdAt: new Date()
+              }
+            };
+          })
+        );
+        
+        const [statsResponse, shopResponse] = await Promise.all(promises);
+        
+        setShopStats(prevStats => ({
+          ...prevStats,
+          ...statsResponse.data
+        }));
+        
+        setShopInfo(prevInfo => ({
+          ...prevInfo,
+          ...shopResponse.data
+        }));
+        
+        console.log('Shop data loaded successfully');
         setError('');
       } catch (err) {
         console.error('Error fetching shop data:', err);
-        setError('Failed to load shop data');
+        // Don't show error for optional data
+        // setError('Failed to load some shop data');
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
     
     fetchShopData();
-  }, [user]);
+  }, [user, apiClient]);
   
   // Handle logout
   const handleLogout = () => {
+    console.log('Shop owner logging out...');
     logout();
     navigate('/');
   };
   
-  // Redirect if not logged in or not a shop owner
+  // Redirect logic is now handled by ProtectedRoute, but keep as safety net
   if (!user) {
-    navigate('/login?redirect=seller-dashboard');
-    return null;
+    console.log('No user in ShopOwnerDashboard, redirecting...');
+    return (
+      <div className="loading-container" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        Loading user data...
+      </div>
+    );
   }
   
-  if (user && user.userType !== 'shop_owner') {
+  if (user.userType !== 'shop_owner') {
+    console.log('User is not a shop owner, redirecting to customer dashboard...');
     navigate('/dashboard');
     return null;
   }
@@ -87,9 +142,21 @@ const ShopOwnerDashboard = () => {
     <div className="seller-dashboard-page">
       <div className="page-header">
         <h1>Shop Dashboard</h1>
+        <p>Welcome back, {user.firstName}!</p>
       </div>
       
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message" style={{
+          backgroundColor: '#fee',
+          color: '#c00',
+          padding: '10px',
+          margin: '10px 0',
+          borderRadius: '4px',
+          border: '1px solid #fcc'
+        }}>
+          {error}
+        </div>
+      )}
       
       <div className="dashboard-container">
         {/* Sidebar */}
@@ -97,42 +164,94 @@ const ShopOwnerDashboard = () => {
           <div className="shop-profile-card">
             <div className="shop-logo">
               {shopInfo.logo ? (
-                <img src={shopInfo.logo} alt={`${shopInfo.shopName} logo`} />
-              ) : (
-                <div className="logo-placeholder">
-                  {shopInfo.shopName ? shopInfo.shopName.charAt(0).toUpperCase() : 'S'}
-                </div>
-              )}
-              {shopInfo.isVerified && (
-                <div className="verified-badge" title="Verified Shop">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="none" d="M0 0h24v24H0z"/>
-                    <path d="M10 15.172l9.192-9.193 1.415 1.414L10 18l-6.364-6.364 1.414-1.414z" fill="currentColor"/>
-                  </svg>
-                </div>
-              )}
+                <img 
+                  src={shopInfo.logo} 
+                  alt={`${shopInfo.shopName} logo`}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className="logo-placeholder"
+                style={{
+                  display: shopInfo.logo ? 'none' : 'flex',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: '#F15A24',
+                  color: 'white',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  position: 'relative'
+                }}
+              >
+                {shopInfo.shopName ? shopInfo.shopName.charAt(0).toUpperCase() : 'S'}
+                {shopInfo.isVerified && (
+                  <div 
+                    className="verified-badge" 
+                    title="Verified Shop"
+                    style={{
+                      position: 'absolute',
+                      bottom: '0',
+                      right: '0',
+                      background: '#4CAF50',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12">
+                      <path fill="none" d="M0 0h24v24H0z"/>
+                      <path d="M10 15.172l9.192-9.193 1.415 1.414L10 18l-6.364-6.364 1.414-1.414z" fill="white"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="shop-info">
-              <h2>{shopInfo.shopName || 'My Shop'}</h2>
+              <h2>{shopInfo.shopName || `${user.firstName}'s Shop`}</h2>
               <p>{user.email}</p>
+              <small>Shop Owner Account</small>
+              {shopInfo.createdAt && (
+                <small>Member since {new Date(shopInfo.createdAt).getFullYear()}</small>
+              )}
             </div>
           </div>
           
           <div className="stats-cards">
             <div className="stat-card">
-              <div className="stat-value">${shopStats.totalSales.toLocaleString()}</div>
+              <div className="stat-icon">💰</div>
+              <div className="stat-value">
+                {statsLoading ? '...' : `$${shopStats.totalSales.toLocaleString()}`}
+              </div>
               <div className="stat-label">Total Sales</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{shopStats.pendingOrders}</div>
+              <div className="stat-icon">📦</div>
+              <div className="stat-value">
+                {statsLoading ? '...' : shopStats.pendingOrders}
+              </div>
               <div className="stat-label">Pending Orders</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{shopStats.totalProducts}</div>
+              <div className="stat-icon">🛍️</div>
+              <div className="stat-value">
+                {statsLoading ? '...' : shopStats.totalProducts}
+              </div>
               <div className="stat-label">Products</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value">{shopStats.totalCustomers}</div>
+              <div className="stat-icon">👥</div>
+              <div className="stat-value">
+                {statsLoading ? '...' : shopStats.totalCustomers}
+              </div>
               <div className="stat-label">Customers</div>
             </div>
           </div>
@@ -162,6 +281,9 @@ const ShopOwnerDashboard = () => {
                 </svg>
               </div>
               <span>Products</span>
+              {shopStats.lowStockProducts > 0 && (
+                <span className="badge warning">{shopStats.lowStockProducts}</span>
+              )}
             </Link>
             
             <Link 
@@ -191,6 +313,9 @@ const ShopOwnerDashboard = () => {
                 </svg>
               </div>
               <span>Promotions</span>
+              {shopStats.activePromotions > 0 && (
+                <span className="badge success">{shopStats.activePromotions}</span>
+              )}
             </Link>
             
             <Link 
@@ -209,6 +334,13 @@ const ShopOwnerDashboard = () => {
             <button 
               className="nav-item logout-button"
               onClick={handleLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: 'left'
+              }}
             >
               <div className="nav-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">

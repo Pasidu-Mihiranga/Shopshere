@@ -1,3 +1,4 @@
+// src/pages/CustomerDashboard.js
 import React, { useState, useEffect } from 'react';
 import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,13 +19,19 @@ const CustomerDashboard = () => {
     wishlistCount: 0,
     addressCount: 0
   });
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Debug logs
+  console.log('CustomerDashboard - User:', user);
+  console.log('CustomerDashboard - Location:', location.pathname);
   
   // Set active tab based on URL
   useEffect(() => {
     const path = location.pathname.split('/');
     const currentTab = path[path.length - 1];
+    
+    console.log('Setting active tab to:', currentTab);
     
     if (currentTab === 'dashboard') {
       setActiveTab('profile');
@@ -33,21 +40,26 @@ const CustomerDashboard = () => {
     }
   }, [location.pathname]);
   
-  // Fetch user stats
+  // Fetch user stats (optional - dashboard should work even if this fails)
   useEffect(() => {
     const fetchUserStats = async () => {
       if (!user) return;
       
       try {
-        setLoading(true);
+        setStatsLoading(true);
+        console.log('Fetching user stats...');
+        
+        // This endpoint might not exist yet, so we'll make it optional
         const response = await axios.get('/api/user/stats');
         setUserStats(response.data);
+        console.log('User stats loaded:', response.data);
         setError('');
       } catch (err) {
-        console.error('Error fetching user stats:', err);
-        setError('Failed to load user data');
+        console.warn('Could not fetch user stats (this is optional):', err);
+        // Don't show error for stats as it's not critical
+        // Keep default stats (all zeros)
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
     
@@ -56,23 +68,45 @@ const CustomerDashboard = () => {
   
   // Handle logout
   const handleLogout = () => {
+    console.log('Logging out user...');
     logout();
     navigate('/');
   };
   
-  // Redirect if not logged in
+  // This check is now handled by ProtectedRoute, but keep as safety net
   if (!user) {
-    navigate('/login?redirect=dashboard');
-    return null;
+    console.log('No user in CustomerDashboard, this should not happen if ProtectedRoute is working');
+    return (
+      <div className="loading-container" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        Loading user data...
+      </div>
+    );
   }
   
   return (
     <div className="dashboard-page">
       <div className="page-header">
         <h1>My Account</h1>
+        <p>Welcome back, {user.firstName}!</p>
       </div>
       
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message" style={{
+          backgroundColor: '#fee',
+          color: '#c00',
+          padding: '10px',
+          margin: '10px 0',
+          borderRadius: '4px',
+          border: '1px solid #fcc'
+        }}>
+          {error}
+        </div>
+      )}
       
       <div className="dashboard-container">
         {/* Sidebar */}
@@ -80,16 +114,38 @@ const CustomerDashboard = () => {
           <div className="user-profile-card">
             <div className="user-avatar">
               {user.profileImage ? (
-                <img src={user.profileImage} alt={`${user.firstName}'s avatar`} />
-              ) : (
-                <div className="avatar-placeholder">
-                  {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
-                </div>
-              )}
+                <img 
+                  src={user.profileImage} 
+                  alt={`${user.firstName}'s avatar`}
+                  onError={(e) => {
+                    // Fallback if image fails to load
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className="avatar-placeholder"
+                style={{
+                  display: user.profileImage ? 'none' : 'flex',
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  backgroundColor: '#F15A24',
+                  color: 'white',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: 'bold'
+                }}
+              >
+                {user.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
+              </div>
             </div>
             <div className="user-info">
               <h2>{user.firstName} {user.lastName}</h2>
               <p>{user.email}</p>
+              <small>Customer Account</small>
             </div>
           </div>
           
@@ -118,7 +174,7 @@ const CustomerDashboard = () => {
                 </svg>
               </div>
               <span>Orders</span>
-              <span className="badge">{userStats.orderCount}</span>
+              {!statsLoading && <span className="badge">{userStats.orderCount}</span>}
             </Link>
             
             <Link 
@@ -132,7 +188,7 @@ const CustomerDashboard = () => {
                 </svg>
               </div>
               <span>Addresses</span>
-              <span className="badge">{userStats.addressCount}</span>
+              {!statsLoading && <span className="badge">{userStats.addressCount}</span>}
             </Link>
             
             <Link 
@@ -146,12 +202,19 @@ const CustomerDashboard = () => {
                 </svg>
               </div>
               <span>Wishlist</span>
-              <span className="badge">{userStats.wishlistCount}</span>
+              {!statsLoading && <span className="badge">{userStats.wishlistCount}</span>}
             </Link>
             
             <button 
               className="nav-item logout-button"
               onClick={handleLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: 'left'
+              }}
             >
               <div className="nav-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">

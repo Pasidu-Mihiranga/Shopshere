@@ -14,6 +14,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import ProductsInfo from './components/ShopOwnerDashboard/ProductManagement';
+import OrderInfo from './components/ShopOwnerDashboard/OrderManagement';
+import PromotionInfo from './components/ShopOwnerDashboard/PromotionManagement';
+import ShopSettingsInfo from './components/ShopOwnerDashboard/ShopSettings';
+import CusOrderInfo from './components/CustomerDashboard/Orders';
+import CusAddressesInfo from './components/CustomerDashboard/Addresses';
+import CusWishlistInfo from './components/CustomerDashboard/Wishlist';
 
 function App() {
   return (
@@ -30,13 +37,74 @@ function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="dashboard" element={
+                <ProtectedRoute>
+                  <CustomerDashboard />
+                </ProtectedRoute>
                 
-                <CustomerDashboard />
                 
               } />
+              <Route path="dashboard/orders" element={
+                <ProtectedRoute>
+                  <CusOrderInfo />
+                </ProtectedRoute>
+                
+                
+              } />
+              <Route path="dashboard/addresses" element={
+                <ProtectedRoute>
+                  <CusAddressesInfo />
+                </ProtectedRoute>
+                
+                
+              } />
+              <Route path="dashboard/wishlist" element={
+                <ProtectedRoute>
+                  <CusWishlistInfo />
+                </ProtectedRoute>
+                
+                
+              } />
+              
               <Route path="seller-dashboard" element={
-               
+               <ProtectedRoute>
                 <ShopOwnerDashboard />
+               </ProtectedRoute>
+                
+                
+              } />
+              <Route path="seller-dashboard/analytics" element={
+               <ProtectedRoute>
+                <ShopOwnerDashboard />
+               </ProtectedRoute>
+                
+                
+              } />
+              <Route path="seller-dashboard/products" element={
+               <ProtectedRoute>
+                <ProductsInfo />
+               </ProtectedRoute>
+                
+                
+              } />
+              <Route path="seller-dashboard/orders" element={
+               <ProtectedRoute>
+                <OrderInfo />
+               </ProtectedRoute>
+                
+                
+              } />
+              <Route path="seller-dashboard/promotions" element={
+               <ProtectedRoute>
+                <PromotionInfo />
+               </ProtectedRoute>
+                
+                
+              } />
+              <Route path="seller-dashboard/settings" element={
+               <ProtectedRoute>
+                <ShopSettingsInfo />
+               </ProtectedRoute>
+                
                 
               } />
             </Route>
