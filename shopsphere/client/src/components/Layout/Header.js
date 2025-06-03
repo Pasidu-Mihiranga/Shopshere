@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import './Header.css';
 
-const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
+const Header = () => {
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const navigate = useNavigate();
@@ -25,6 +25,7 @@ const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
   const handleLogout = () => {
     logout();
     navigate('/');
+    setDropdownOpen(false);
   };
 
   // Close dropdown when clicking outside
@@ -42,78 +43,44 @@ const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
   }, [dropdownOpen]);
 
   return (
-    <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
+    <header className="header">
       <div className="header-container">
-        {/* Mobile Menu Button */}
-        <button 
-          className={`mobile-menu-button ${isMobileMenuOpen ? 'active' : ''}`} 
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-        {/* Logo */}
-        <div className="logo">
-          <Link to="/">
-            <img src="/images/logo.jpg" alt="SHOPSPHERE" />
+        {/* Logo Section */}
+        <div className="logo-section">
+          <Link to="/" className="logo-link">
+            <img src="/images/Logo.png" alt="SHOPSPHERE" className="logo" />
           </Link>
         </div>
 
-        {/* Search Bar */}
-        <div className="search-bar">
-          <form onSubmit={handleSearchSubmit}>
+        {/* Desktop Search Section */}
+        <div className="search-section desktop-search">
+          <form onSubmit={handleSearchSubmit} className="search-form">
             <input 
               type="text" 
-              placeholder="Search for anything..." 
+              className="search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
+              placeholder="Search for anything..." 
             />
             <button type="submit" className="search-button">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                <path fill="none" d="M0 0h24v24H0z"/>
-                <path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617zm-2.006-.742A6.977 6.977 0 0 0 18 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 0 0 4.875-1.975l.15-.15z" fill="currentColor"/>
-              </svg>
+              <img src="/images/searchIcon.png" alt="Search" className="search-icon" />
             </button>
           </form>
         </div>
 
-        {/* Navigation - Desktop */}
-        <nav className={`navigation ${isMobileMenuOpen ? 'active' : ''}`}>
-          <Link 
-            to="/products" 
-            className={`nav-link ${location.pathname.startsWith('/products') ? 'active' : ''}`}
-          >
-            Products
+        {/* Right Section - Cart and Auth */}
+        <div className="right-section">
+          {/* Cart Icon */}
+          <Link to="/cart" className="cart-link">
+            <div className="cart-container">
+              <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+              {cart.totalItems > 0 && (
+                <span className="cart-badge">{cart.totalItems}</span>
+              )}
+            </div>
           </Link>
-          
-          <Link 
-            to="/categories" 
-            className={`nav-link ${location.pathname.startsWith('/categories') ? 'active' : ''}`}
-          >
-            Categories
-          </Link>
-          
-          <Link 
-            to="/flash-sale" 
-            className={`nav-link ${location.pathname.startsWith('/flash-sale') ? 'active' : ''}`}
-          >
-            Flash Sale
-          </Link>
-          
-          <Link to="/cart" className="cart-icon-link">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-              <path fill="none" d="M0 0h24v24H0z"/>
-              <path d="M4 16V4H2V2h3a1 1 0 0 1 1 1v12h12.438l2-8H8V5h13.72a1 1 0 0 1 .97 1.243l-2.5 10a1 1 0 0 1-.97.757H5a1 1 0 0 1-1-1zm2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm12 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="currentColor"/>
-            </svg>
-            {cart.totalItems > 0 && (
-              <span className="cart-badge">{cart.totalItems}</span>
-            )}
-          </Link>
-          
+
+          {/* User Menu or Auth Buttons */}
           {user ? (
             <div className="user-menu">
               <button 
@@ -122,13 +89,13 @@ const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
               >
                 <span className="username">{user.firstName}</span>
                 <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
+                  className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}
                   width="16" 
                   height="16"
-                  className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
                 >
-                  <path d="M12 15l-5-5h10l-5 5z" fill="currentColor"/>
+                  <path d="M12 15l-5-5h10l-5 5z"/>
                 </svg>
               </button>
               
@@ -136,13 +103,22 @@ const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
                 <Link 
                   to={user.userType === 'customer' ? '/dashboard' : '/seller-dashboard'}
                   className="dropdown-item"
+                  onClick={() => setDropdownOpen(false)}
                 >
                   Dashboard
                 </Link>
-                <Link to="/profile" className="dropdown-item">
+                <Link 
+                  to="/profile" 
+                  className="dropdown-item"
+                  onClick={() => setDropdownOpen(false)}
+                >
                   Profile
                 </Link>
-                <Link to="/orders" className="dropdown-item">
+                <Link 
+                  to="/orders" 
+                  className="dropdown-item"
+                  onClick={() => setDropdownOpen(false)}
+                >
                   Orders
                 </Link>
                 <button 
@@ -155,11 +131,41 @@ const Header = ({ isScrolled, isMobileMenuOpen, toggleMobileMenu }) => {
             </div>
           ) : (
             <div className="auth-buttons">
-              <Link to="/login" className="btn-login">Login</Link>
-              <Link to="/register" className="btn-register">Register</Link>
+              <Link to="/login">
+                <button className="login-button">Login</button>
+              </Link>
+              <Link to="/register">
+                <button className="register-button">Register</button>
+              </Link>
             </div>
           )}
-        </nav>
+        </div>
+
+        {/* Mobile Search Section */}
+        <div className="search-section mobile-search">
+          <form onSubmit={handleSearchSubmit} className="search-form">
+            <input 
+              type="text" 
+              className="search-input" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search for anything..." 
+            />
+            <button type="submit" className="search-button">
+              <img src="/images/searchIcon.png" alt="Search" className="search-icon" />
+            </button>
+          </form>
+          
+          {/* Mobile Cart */}
+          <Link to="/cart" className="cart-link mobile-cart">
+            <div className="cart-container">
+              <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+              {cart.totalItems > 0 && (
+                <span className="cart-badge">{cart.totalItems}</span>
+              )}
+            </div>
+          </Link>
+        </div>
       </div>
     </header>
   );

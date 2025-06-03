@@ -1,7 +1,7 @@
 /* Enhanced Footer Styles - Advanced, Attractive and Mobile Responsive */
 
 .footer {
-    background-color: #222;
+    background-color: rgb(244, 116, 37);
     color: #fff;
     padding: 5rem 0 2rem;
     position: relative;
@@ -16,7 +16,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(160deg, rgba(241, 90, 36, 0.08) 0%, rgba(0, 0, 0, 0) 60%);
+    background: linear-gradient(160deg, rgba(244, 116, 37, 0.08) 0%, rgba(244, 116, 37, 0) 60%);
     pointer-events: none;
   }
   
@@ -28,7 +28,7 @@
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(90deg, #F15A24, #FF9D5C);
+    background: linear-gradient(90deg, rgb(110, 42, 17), #ec975d);
     clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%);
   }
   
@@ -63,7 +63,7 @@
   }
   
   .footer-title {
-    color: #F15A24;
+    color: rgb(62, 30, 1);
     margin-bottom: 1.8rem;
     font-size: 1.3rem;
     font-weight: 600;
@@ -79,7 +79,7 @@
     bottom: -10px;
     width: 30px;
     height: 3px;
-    background: linear-gradient(90deg, #F15A24, #FF9D5C);
+    background: linear-gradient(90deg, #f2f0ef, #fd9651);
     border-radius: 3px;
     transition: width 0.3s ease;
   }
@@ -162,7 +162,7 @@
   .social-icon:hover {
     color: #fff;
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(241, 90, 36, 0.3);
+    box-shadow: 0 5px 15px rgba(163, 62, 26, 0.3);
   }
   
   .social-icon:hover::before {
@@ -200,17 +200,17 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: rgba(241, 90, 36, 0.5);
+    background-color: rgba(228, 224, 222, 0.5);
     transition: all 0.3s ease;
   }
   
   .footer-links a:hover {
-    color: #F15A24;
+    color: #202020;
     transform: translateX(5px);
   }
   
   .footer-links a:hover::before {
-    background-color: #F15A24;
+    background-color: #321e17;
     transform: translateY(-50%) scale(1.2);
   }
   
@@ -277,58 +277,6 @@
     transform: translateX(3px);
   }
   
-  /* Download App Section */
-  .download-app {
-    margin-top: 1.5rem;
-  }
-  
-  .app-text {
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 1rem;
-  }
-  
-  .app-store-buttons {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  
-  .app-store-button {
-    display: flex;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    text-decoration: none;
-    color: white;
-    transition: all 0.3s ease;
-  }
-  
-  .app-store-button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .app-store-button img {
-    height: 30px;
-    margin-right: 8px;
-  }
-  
-  .app-store-button span {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .app-store-button .small-text {
-    font-size: 0.7rem;
-    opacity: 0.8;
-  }
-  
-  .app-store-button .big-text {
-    font-size: 1rem;
-    font-weight: 600;
-  }
   
   /* Footer Bottom */
   .footer-bottom {
@@ -363,31 +311,7 @@
     color: #F15A24;
   }
   
-  .payment-methods {
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-  }
   
-  .payment-method {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    padding: 0.4rem 0.6rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-  
-  .payment-method:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-  }
-  
-  .payment-method img {
-    height: 24px;
-    opacity: 0.9;
-  }
   
   /* Floating back to top button */
   .back-to-top {
@@ -397,7 +321,7 @@
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #F15A24, #FF9D5C);
+    background: linear-gradient(135deg, #6c2b13, #FF9D5C);
     color: white;
     display: flex;
     align-items: center;
@@ -711,7 +635,7 @@
   /* Support for dark theme preferences */
   @media (prefers-color-scheme: dark) {
     .footer {
-      background-color: #111;
+      background-color: #f47425;
     }
     
     .newsletter-form input {

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './Home.css';
+import FlashSaleAd from "../components/FlashSaleAd/FlashSaleAd";
+
 
 const Home = () => {
   const [flashSaleProducts, setFlashSaleProducts] = useState([]);
@@ -58,20 +60,21 @@ const Home = () => {
   return (
     <div className="home-page">
       {/* Hero Banner */}
-      <section className="hero-banner">
+      {/* <section className="hero-banner">
+      
         <div className="hero-content">
           <h1>Flash Sale: Limited Time Offers You Can't Resist!</h1>
           <p>Unlock amazing savings on top-rated items - hurry, these deals won't last!</p>
           <Link to="/flash-sale" className="hero-button">Shop Now</Link>
         </div>
-      </section>
-
-      {error && (
+      </section> */}
+      <FlashSaleAd/>
+      {/* {error && (
         <div className="error-container">
           <p>{error}</p>
           <button onClick={() => window.location.reload()}>Try Again</button>
         </div>
-      )}
+      )} */}
 
       {/* Categories Section */}
       <section className="categories-section">

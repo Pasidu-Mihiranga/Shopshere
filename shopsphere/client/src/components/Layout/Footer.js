@@ -91,41 +91,6 @@ const Footer = () => {
             <p>&copy; {currentYear} SHOPSPHERE. All rights reserved.</p>
           </div>
           
-          <div className="payment-methods">
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M13 10h3v7h-3z" fill="#213f99"/>
-                <path d="M13 7h3v2h-3z" fill="#213f99"/>
-                <path d="M24 10h3v7h-3z" fill="#213f99"/>
-                <path d="M16 14c0-2 2-2 2-2h2v-2h-2s-4 0-4 4 4 4 4 4h2v-2h-2s-2 0-2-2z" fill="#213f99"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M10 8h5v8h-5z" fill="#ff5f00"/>
-                <path d="M11 12a5 5 0 0 1 1.9-4H10v8h2.9a5 5 0 0 1-1.9-4z" fill="#eb001b"/>
-                <path d="M30 12a5 5 0 0 1-8 4h2.9v-8H22a5 5 0 0 1 8 4z" fill="#f79e1b"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M29 8H11c-.6 0-1 .4-1 1v6c0 .6.4 1 1 1h18c.6 0 1-.4 1-1V9c0-.6-.4-1-1-1z" fill="#FCB941"/>
-                <path d="M12 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-                <path d="M24 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="24" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M24 7H14v10h10V7z" fill="#006FCF"/>
-                <path d="M18 10l-1 2-1-2h-1l1.5 3L15 16h1l1-2 1 2h1l-1.5-3L19 10h-1z" fill="#FFF"/>
-                <path d="M24 10h-1l-1 3-1-3h-1l1.5 4h1l1.5-4z" fill="#FFF"/>
-              </svg>
-            </span>
-          </div>
         </div>
       </div>
     </footer>
