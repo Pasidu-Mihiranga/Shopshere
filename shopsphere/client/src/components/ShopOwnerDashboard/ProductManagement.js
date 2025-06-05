@@ -223,7 +223,7 @@ const ProductManagement = () => {
       if (currentProduct) {
         // Update existing product - Updated endpoint
         console.log('🔄 Updating product:', currentProduct._id);
-        response = await axios.put(`${API_BASE}/api/products/shop/${currentProduct._id}`, productData, config);
+        response = await axios.put(`${API_BASE}/api/products/${currentProduct._id}`, productData, config);
         setSuccessMessage('Product updated successfully!');
         
         // Update products list
@@ -313,7 +313,7 @@ const ProductManagement = () => {
       };
 
       // Updated endpoint for delete
-      await axios.delete(`${API_BASE}/api/products/shop/${productId}`, config);
+      await axios.delete(`${API_BASE}/api/products/${productId}`, config);
       
       setProducts(products.filter(product => product._id !== productId));
       setSuccessMessage('Product deleted successfully!');
