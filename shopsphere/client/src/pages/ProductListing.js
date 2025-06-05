@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from '../components/Product/ProductCard';
-import FilterSidebar from '../components/Filter/FilterSidebar';
 import Pagination from '../components/Common/Pagination';
 import './ProductListing.css';
 
@@ -21,8 +20,12 @@ const ProductListing = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
   
   const productsPerPage = 12;
+  const port = process.env.PORT_ORIGIN;
+  
+  
   
   // Get all URL params for filters
   const searchQuery = queryParams.get('search') || '';
@@ -34,7 +37,7 @@ const ProductListing = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/api/categories');
+        const response = await axios.get(`http://localhost:5000/api/categories`);
         setCategories(response.data);
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -77,7 +80,7 @@ const ProductListing = () => {
         if (ratingFilter) params.set('rating', ratingFilter);
         
         // Fetch products
-        const response = await axios.get(`/api/products?${params.toString()}`);
+        const response = await axios.get(`http://localhost:5000/api/products?${params.toString()}`);
         
         setProducts(response.data.products);
         setTotalProducts(response.data.total);
@@ -157,26 +160,7 @@ const ProductListing = () => {
       </button>
       
       <div className="product-listing-container">
-        {/* Filter sidebar */}
-        <aside className={`filter-sidebar ${isMobileFilterOpen ? 'mobile-open' : ''}`}>
-          <div className="filter-header-mobile">
-            <h3>Filters</h3>
-            <button 
-              className="close-filter-btn"
-              onClick={toggleMobileFilter}
-            >
-              ×
-            </button>
-          </div>
-          <FilterSidebar 
-            categories={categories}
-            activeCategory={categoryParam}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            rating={ratingFilter}
-            onFilterApply={toggleMobileFilter}
-          />
-        </aside>
+        
         
         {/* Overlay for mobile filter */}
         {isMobileFilterOpen && (

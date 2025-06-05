@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext'; // ✅ Added this import
 import './ProductDetail.css';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  
+  const { user } = useAuth(); // ✅ Added this to get user state
+
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -17,23 +19,51 @@ const ProductDetail = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Fetch product details
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // ✅ Moved to proper location
+
+  // Helper function to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '/images/placeholder-product.png';
+    return `http://localhost:5000${imagePath}`;
+  };
+
+  // Single useEffect to handle all data fetching
   useEffect(() => {
-    const fetchProductDetails = async () => {
+    const fetchAllData = async () => {
+      if (!id) return;
+
       setLoading(true);
-      
+      setError(null);
+
       try {
-        const response = await axios.get(`/api/products/${id}`);
-        setProduct(response.data);
-        
-        // Initialize selected attributes
-        if (response.data.attributes) {
+        console.log(`Fetching product with ID: ${id}`);
+
+        // Fetch main product
+        const productResponse = await axios.get(`http://localhost:5000/api/products/shop/${id}`);
+        console.log('Full API response:', productResponse.data);
+
+        if (!productResponse.data) {
+          throw new Error('No product data received');
+        }
+
+        const productData = productResponse.data.product;
+
+        // ✅ Access data directly from API response, not from state
+        console.log('Product name from API response:', productData.name);
+        console.log('Product description from API response:', productData.description);
+        console.log('Product price from API response:', productData.price);
+        console.log('Product category from API response:', productData.category);
+
+        // Set product state
+        setProduct(productData);
+
+        // Initialize selected attributes using productData (not product state)
+        if (productData.attributes && Object.keys(productData.attributes).length > 0) {
           const initialAttributes = {};
-          Object.entries(response.data.attributes).forEach(([key, value]) => {
+          Object.entries(productData.attributes).forEach(([key, value]) => {
             if (Array.isArray(value) && value.length > 0) {
               initialAttributes[key] = value[0];
-            } else if (typeof value === 'object') {
+            } else if (typeof value === 'object' && value !== null) {
               const options = Object.keys(value);
               if (options.length > 0) {
                 initialAttributes[key] = options[0];
@@ -41,41 +71,44 @@ const ProductDetail = () => {
             }
           });
           setSelectedAttributes(initialAttributes);
+          console.log('Initialized attributes:', initialAttributes);
+        } else {
+          console.log('No attributes found for this product');
+          setSelectedAttributes({});
         }
-        
-        // Reset selected image index when product changes
+
+        // Fetch related products if we have category info
+        if (productData.category && productData._id) {
+          try {
+            console.log('Fetching related products for category:', productData.category);
+            const relatedResponse = await axios.get(
+              `http://localhost:5000/api/products?category=${productData.category}&limit=4&exclude=${productData._id}`
+            );
+            console.log('Related products response:', relatedResponse.data);
+            setRelatedProducts(relatedResponse.data.products || []);
+          } catch (relatedErr) {
+            console.error('Error fetching related products:', relatedErr);
+            // Don't set error state for related products failure
+          }
+        }
+
+        // Reset UI states
         setSelectedImage(0);
         setQuantity(1);
         setError(null);
+
       } catch (err) {
         console.error('Error fetching product details:', err);
+        console.error('Error response:', err.response?.data);
         setError('Failed to load product details. Please try again.');
       } finally {
         setLoading(false);
       }
     };
-    
-    fetchProductDetails();
+
+    fetchAllData();
   }, [id]);
-  
-  // Fetch related products
-  useEffect(() => {
-    const fetchRelatedProducts = async () => {
-      if (!product) return;
-      
-      try {
-        const response = await axios.get(`/api/products?category=${product.category}&limit=4&exclude=${product._id}`);
-        setRelatedProducts(response.data.products);
-      } catch (err) {
-        console.error('Error fetching related products:', err);
-      }
-    };
-    
-    if (product) {
-      fetchRelatedProducts();
-    }
-  }, [product]);
-  
+
   // Handle quantity change
   const handleQuantityChange = (value) => {
     const newQuantity = quantity + value;
@@ -83,7 +116,7 @@ const ProductDetail = () => {
       setQuantity(newQuantity);
     }
   };
-  
+
   // Handle attribute selection
   const handleAttributeChange = (attribute, value) => {
     setSelectedAttributes(prev => ({
@@ -91,33 +124,81 @@ const ProductDetail = () => {
       [attribute]: value
     }));
   };
-  
-  // Add to cart
-  const handleAddToCart = () => {
-    if (product) {
-      addToCart(product, quantity, selectedAttributes);
+
+  // Enhanced Add to cart function
+  const handleAddToCart = async () => {
+    // Validation checks
+    if (!product) {
+      alert('Product not found');
+      return;
+    }
+
+    if (quantity < 1 || quantity > (product.inventory?.quantity || 10)) {
+      alert('Invalid quantity selected');
+      return;
+    }
+
+    // Check if out of stock
+    if (product.inventory?.quantity <= 0) {
+      alert('This product is out of stock');
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
       
-      // Show toast notification
-      // ...
+      console.log('Adding to cart:', {
+        product: product.name,
+        productId: product._id,
+        quantity,
+        attributes: selectedAttributes,
+        user: user ? 'authenticated' : 'guest' // ✅ Now user is properly imported
+      });
+
+      // Call the addToCart function from context
+      await addToCart(product, quantity, selectedAttributes);
+      
+      console.log('Successfully added to cart');
+      
+      // Optional: Show success message
+      // You can replace this with a toast notification
+      alert(`${product.name} added to cart successfully!`);
+      
+      // Optional: Reset quantity to 1 after adding
+      // setQuantity(1);
+      
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      
+      // Show user-friendly error message
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Failed to add item to cart. Please try again.';
+      
+      alert(errorMessage);
+    } finally {
+      setIsAddingToCart(false);
     }
   };
-  
+
   // Buy now
-  const handleBuyNow = () => {
-    handleAddToCart();
+  const handleBuyNow = async () => {
+    await handleAddToCart();
     navigate('/checkout');
   };
-  
-  // Format currency
+
+  // Format currency - Fixed to not divide by 100
   const formatPrice = (price) => {
-    return `$${price.toFixed(2)}`;
+    if (typeof price !== 'number') return '0.00';
+    return price.toFixed(2);
   };
-  
+
   // Calculate discount percentage
   const calculateDiscount = (price, salePrice) => {
+    if (!price || !salePrice) return 0;
     return Math.round((1 - salePrice / price) * 100);
   };
-  
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -126,7 +207,7 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="error-container">
@@ -135,7 +216,7 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
+
   if (!product) {
     return (
       <div className="error-container">
@@ -146,7 +227,7 @@ const ProductDetail = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="product-detail-page">
       <div className="breadcrumbs">
@@ -156,16 +237,20 @@ const ProductDetail = () => {
         <span className="separator">/</span>
         <span className="current">{product.name}</span>
       </div>
-      
+
       <div className="product-detail-container">
         {/* Product Images */}
         <div className="product-images">
           <div className="main-image">
-            <img 
-              src={product.images && product.images.length > 0 
-                ? product.images[selectedImage] 
-                : '/images/placeholder-product.png'} 
-              alt={product.name} 
+            <img
+              src={product.images && product.images.length > 0
+                ? getImageUrl(product.images[selectedImage])
+                : '/images/placeholder-product.png'}
+              alt={product.name}
+              onError={(e) => {
+                console.log('Main image failed to load:', e.target.src);
+                e.target.src = '/images/placeholder-product.png';
+              }}
             />
             {product.salePrice && (
               <span className="discount-badge">
@@ -173,53 +258,51 @@ const ProductDetail = () => {
               </span>
             )}
           </div>
-          
+
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-gallery">
               {product.images.map((image, index) => (
-                <button 
+                <button
                   key={index}
                   className={`thumbnail ${index === selectedImage ? 'active' : ''}`}
                   onClick={() => setSelectedImage(index)}
                 >
-                  <img src={image} alt={`${product.name} - view ${index + 1}`} />
+                  <img
+                    src={getImageUrl(image)}
+                    alt={`${product.name} - view ${index + 1}`}
+                    onError={(e) => {
+                      console.log('Thumbnail failed to load:', e.target.src);
+                      e.target.src = '/images/placeholder-product.png';
+                    }}
+                  />
                 </button>
               ))}
             </div>
           )}
         </div>
-        
+
         {/* Product Info */}
         <div className="product-info">
           <h1 className="product-name">{product.name}</h1>
-          
+
           <div className="product-meta">
-            <div className="product-rating">
-              <div className="stars" style={{ '--rating': product.rating || 0 }}></div>
-              <span className="reviews-count">({product.reviews?.length || 0} Reviews)</span>
-            </div>
-            
             <div className="product-sku">
               SKU: <span>{product.inventory?.sku || 'N/A'}</span>
             </div>
           </div>
-          
+
           <div className="product-price">
             {product.salePrice ? (
               <>
-                <span className="sale-price">{formatPrice(product.salePrice)}</span>
-                <span className="original-price">{formatPrice(product.price)}</span>
+                <span className="sale-price">${formatPrice(product.salePrice)}</span>
+                <span className="original-price">${formatPrice(product.price)}</span>
                 <span className="discount-text">Save {calculateDiscount(product.price, product.salePrice)}%</span>
               </>
             ) : (
-              <span className="regular-price">{formatPrice(product.price)}</span>
+              <span className="regular-price">${formatPrice(product.price)}</span>
             )}
           </div>
-          
-          <div className="product-short-description">
-            <p>{product.description}</p>
-          </div>
-          
+
           {/* Product Attributes */}
           {product.attributes && Object.entries(product.attributes).length > 0 && (
             <div className="product-attributes">
@@ -238,7 +321,7 @@ const ProductDetail = () => {
                           {option}
                         </button>
                       ))
-                    ) : typeof value === 'object' ? (
+                    ) : typeof value === 'object' && value !== null ? (
                       // Color options
                       Object.entries(value).map(([colorName, colorCode]) => (
                         <button
@@ -259,23 +342,23 @@ const ProductDetail = () => {
               ))}
             </div>
           )}
-          
+
           {/* Quantity Selector */}
           <div className="quantity-selector">
             <h3>Quantity</h3>
             <div className="quantity-controls">
-              <button 
+              <button
                 onClick={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1}
               >
                 -
               </button>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={quantity}
                 readOnly
               />
-              <button 
+              <button
                 onClick={() => handleQuantityChange(1)}
                 disabled={quantity >= (product.inventory?.quantity || 10)}
               >
@@ -290,21 +373,21 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
-          
+
           {/* Add to Cart & Buy Now */}
           <div className="product-actions">
-            <button 
+            <button
               className="add-to-cart-btn"
               onClick={handleAddToCart}
-              disabled={product.inventory?.quantity <= 0}
+              disabled={product.inventory?.quantity <= 0 || isAddingToCart}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                <path fill="none" d="M0 0h24v24H0z"/>
-                <path d="M4 16V4H2V2h3a1 1 0 0 1 1 1v12h12.438l2-8H8V5h13.72a1 1 0 0 1 .97 1.243l-2.5 10a1 1 0 0 1-.97.757H5a1 1 0 0 1-1-1zm2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm12 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="currentColor"/>
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path d="M4 16V4H2V2h3a1 1 0 0 1 1 1v12h12.438l2-8H8V5h13.72a1 1 0 0 1 .97 1.243l-2.5 10a1 1 0 0 1-.97.757H5a1 1 0 0 1-1-1zm2 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm12 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" fill="currentColor" />
               </svg>
-              Add to Cart
+              {isAddingToCart ? 'Adding...' : 'Add to Cart'}
             </button>
-            <button 
+            <button
               className="buy-now-btn"
               onClick={handleBuyNow}
               disabled={product.inventory?.quantity <= 0}
@@ -312,18 +395,18 @@ const ProductDetail = () => {
               Buy Now
             </button>
           </div>
-          
+
           {/* Shop Info */}
           <div className="shop-info">
             <div className="shop-name">
               Sold by: <a href={`/shop/${product.shopId}`}>{product.shopName || 'ShopSphere Merchant'}</a>
             </div>
-            
+
             <div className="delivery-info">
               <div className="delivery-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M8.965 18a3.5 3.5 0 0 1-6.93 0H1V6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2h3l3 4.056V18h-2.035a3.5 3.5 0 0 1-6.93 0h-5.07zm-5 2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm14 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="currentColor"/>
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path d="M8.965 18a3.5 3.5 0 0 1-6.93 0H1V6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2h3l3 4.056V18h-2.035a3.5 3.5 0 0 1-6.93 0h-5.07zm-5 2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm14 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="currentColor" />
                 </svg>
               </div>
               <div className="delivery-text">
@@ -331,12 +414,12 @@ const ProductDetail = () => {
                 <span className="delivery-detail">2-3 business days</span>
               </div>
             </div>
-            
+
             <div className="delivery-info">
               <div className="delivery-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor"/>
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor" />
                 </svg>
               </div>
               <div className="delivery-text">
@@ -345,80 +428,20 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
-          
-          {/* Secure Checkout */}
-          <div className="secure-checkout">
-            <div className="secure-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                <path fill="none" d="M0 0h24v24H0z"/>
-                <path d="M19 10h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1h1V9a7 7 0 1 1 14 0v1zm-2 0V9A5 5 0 0 0 7 9v1h10zm-6 4v4h2v-4h-2z" fill="currentColor"/>
-              </svg>
-            </div>
-            <span>Secure Checkout</span>
-          </div>
-          
-          {/* Payment Methods */}
-          <div className="payment-methods">
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M13 10h3v7h-3z" fill="#213f99"/>
-                <path d="M13 7h3v2h-3z" fill="#213f99"/>
-                <path d="M24 10h3v7h-3z" fill="#213f99"/>
-                <path d="M16 14c0-2 2-2 2-2h2v-2h-2s-4 0-4 4 4 4 4 4h2v-2h-2s-2 0-2-2z" fill="#213f99"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M10 8h5v8h-5z" fill="#ff5f00"/>
-                <path d="M11 12a5 5 0 0 1 1.9-4H10v8h2.9a5 5 0 0 1-1.9-4z" fill="#eb001b"/>
-                <path d="M30 12a5 5 0 0 1-8 4h2.9v-8H22a5 5 0 0 1 8 4z" fill="#f79e1b"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M29 8H11c-.6 0-1 .4-1 1v6c0 .6.4 1 1 1h18c.6 0 1-.4 1-1V9c0-.6-.4-1-1-1z" fill="#FCB941"/>
-                <path d="M12 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-                <path d="M24 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-              </svg>
-            </span>
-            <span className="payment-method">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                <rect width="40" height="24" rx="4" fill="#fff"/>
-                <path d="M24 7H14v10h10V7z" fill="#006FCF"/>
-                <path d="M18 10l-1 2-1-2h-1l1.5 3L15 16h1l1-2 1 2h1l-1.5-3L19 10h-1z" fill="#FFF"/>
-                <path d="M24 10h-1l-1 3-1-3h-1l1.5 4h1l1.5-4z" fill="#FFF"/>
-              </svg>
-            </span>
-          </div>
         </div>
       </div>
-      
+
       {/* Product Tabs */}
       <div className="product-tabs">
         <div className="tabs-header">
-          <button 
+          <button
             className={`tab-button ${activeTab === 'description' ? 'active' : ''}`}
             onClick={() => setActiveTab('description')}
           >
             Description
           </button>
-          <button 
-            className={`tab-button ${activeTab === 'specifications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('specifications')}
-          >
-            Specifications
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reviews')}
-          >
-            Reviews ({product.reviews?.length || 0})
-          </button>
         </div>
-        
+
         <div className="tabs-content">
           {activeTab === 'description' && (
             <div className="tab-pane">
@@ -427,7 +450,7 @@ const ProductDetail = () => {
               </div>
             </div>
           )}
-          
+
           {activeTab === 'specifications' && (
             <div className="tab-pane">
               <div className="product-specifications">
@@ -462,7 +485,7 @@ const ProductDetail = () => {
               </div>
             </div>
           )}
-          
+
           {activeTab === 'reviews' && (
             <div className="tab-pane">
               <div className="product-reviews">
@@ -503,41 +526,45 @@ const ProductDetail = () => {
           )}
         </div>
       </div>
-      
-      {/* Related Products */}
+
+      {/* Related Products - Updated with new class names */}
       {relatedProducts.length > 0 && (
-        <div className="related-products">
-          <h2 className="section-title">You May Also Like</h2>
-          <div className="related-products-grid">
-            {relatedProducts.map(product => (
-              <Link 
-                key={product._id} 
-                to={`/products/${product._id}`}
-                className="product-card"
+        <div className="related-products-section">
+          <h2 className="related-section-title">You May Also Like</h2>
+          <div className="related-items-grid">
+            {relatedProducts.map(relatedProduct => (
+              <Link
+                key={relatedProduct._id}
+                to={`/products/${relatedProduct._id}`}
+                className="related-item-card"
               >
-                <div className="product-image">
-                  <img 
-                    src={product.images && product.images.length > 0 
-                      ? product.images[0] 
-                      : '/images/placeholder-product.png'} 
-                    alt={product.name} 
+                <div className="related-item-image">
+                  <img
+                    src={relatedProduct.images && relatedProduct.images.length > 0
+                      ? getImageUrl(relatedProduct.images[0])
+                      : '/images/placeholder-product.png'}
+                    alt={relatedProduct.name}
+                    onError={(e) => {
+                      console.log('Related product image failed to load:', e.target.src);
+                      e.target.src = '/images/placeholder-product.png';
+                    }}
                   />
-                  {product.salePrice && (
-                    <span className="discount-badge">
-                      {calculateDiscount(product.price, product.salePrice)}% OFF
+                  {relatedProduct.salePrice && (
+                    <span className="related-discount-badge">
+                      {calculateDiscount(relatedProduct.price, relatedProduct.salePrice)}% OFF
                     </span>
                   )}
                 </div>
-                <div className="product-info">
-                  <h3 className="product-name">{product.name}</h3>
-                  <div className="product-price">
-                    {product.salePrice ? (
+                <div className="related-item-info">
+                  <h3 className="related-item-name">{relatedProduct.name}</h3>
+                  <div className="related-item-price">
+                    {relatedProduct.salePrice ? (
                       <>
-                        <span className="sale-price">{formatPrice(product.salePrice)}</span>
-                        <span className="original-price">{formatPrice(product.price)}</span>
+                        <span className="related-item-sale-price">${formatPrice(relatedProduct.salePrice)}</span>
+                        <span className="related-item-original-price">${formatPrice(relatedProduct.price)}</span>
                       </>
                     ) : (
-                      <span className="regular-price">{formatPrice(product.price)}</span>
+                      <span className="related-item-regular-price">${formatPrice(relatedProduct.price)}</span>
                     )}
                   </div>
                 </div>

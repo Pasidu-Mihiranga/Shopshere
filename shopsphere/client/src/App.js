@@ -16,7 +16,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import ProductsInfo from './components/ShopOwnerDashboard/ProductManagement';
 import OrderInfo from './components/ShopOwnerDashboard/OrderManagement';
-import PromotionInfo from './components/ShopOwnerDashboard/PromotionManagement';
 import ShopSettingsInfo from './components/ShopOwnerDashboard/ShopSettings';
 import CusOrderInfo from './components/CustomerDashboard/Orders';
 import CusAddressesInfo from './components/CustomerDashboard/Addresses';
@@ -75,13 +74,7 @@ function App() {
                 
                 
               } />
-              <Route path="seller-dashboard/analytics" element={
-               <ProtectedRoute>
-                <ShopOwnerDashboard />
-               </ProtectedRoute>
-                
-                
-              } />
+              
               <Route path="seller-dashboard/products" element={
                <ProtectedRoute>
                 <ProductsInfo />
@@ -96,13 +89,7 @@ function App() {
                 
                 
               } />
-              <Route path="seller-dashboard/promotions" element={
-               <ProtectedRoute>
-                <PromotionInfo />
-               </ProtectedRoute>
-                
-                
-              } />
+              
               <Route path="seller-dashboard/settings" element={
                <ProtectedRoute>
                 <ShopSettingsInfo />

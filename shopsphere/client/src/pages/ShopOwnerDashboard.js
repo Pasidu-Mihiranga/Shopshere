@@ -4,8 +4,6 @@ import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext';
 import ProductManagement from '../components/ShopOwnerDashboard/ProductManagement';
 import OrderManagement from '../components/ShopOwnerDashboard/OrderManagement';
-import PromotionManagement from '../components/ShopOwnerDashboard/PromotionManagement';
-import Analytics from '../components/ShopOwnerDashboard/Analytics';
 import ShopSettings from '../components/ShopOwnerDashboard/ShopSettings';
 import './ShopOwnerDashboard.css';
 
@@ -43,7 +41,7 @@ const ShopOwnerDashboard = () => {
     console.log('Setting active tab to:', currentTab);
     
     if (currentTab === 'seller-dashboard') {
-      setActiveTab('analytics');
+      setActiveTab('products');
     } else {
       setActiveTab(currentTab);
     }
@@ -225,50 +223,9 @@ const ShopOwnerDashboard = () => {
             </div>
           </div>
           
-          <div className="stats-cards">
-            <div className="stat-card">
-              <div className="stat-icon">💰</div>
-              <div className="stat-value">
-                {statsLoading ? '...' : `$${shopStats.totalSales.toLocaleString()}`}
-              </div>
-              <div className="stat-label">Total Sales</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">📦</div>
-              <div className="stat-value">
-                {statsLoading ? '...' : shopStats.pendingOrders}
-              </div>
-              <div className="stat-label">Pending Orders</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">🛍️</div>
-              <div className="stat-value">
-                {statsLoading ? '...' : shopStats.totalProducts}
-              </div>
-              <div className="stat-label">Products</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">👥</div>
-              <div className="stat-value">
-                {statsLoading ? '...' : shopStats.totalCustomers}
-              </div>
-              <div className="stat-label">Customers</div>
-            </div>
-          </div>
+          
           
           <nav className="dashboard-nav">
-            <Link 
-              to="/seller-dashboard" 
-              className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
-            >
-              <div className="nav-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M5 3v16h16v2H3V3h2zm15.293 3.293l1.414 1.414L16 13.414l-3-2.999-4.293 4.292-1.414-1.414L13 7.586l3 2.999 4.293-4.292z" fill="currentColor"/>
-                </svg>
-              </div>
-              <span>Analytics</span>
-            </Link>
             
             <Link 
               to="/seller-dashboard/products" 
@@ -302,21 +259,7 @@ const ShopOwnerDashboard = () => {
               )}
             </Link>
             
-            <Link 
-              to="/seller-dashboard/promotions" 
-              className={`nav-item ${activeTab === 'promotions' ? 'active' : ''}`}
-            >
-              <div className="nav-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M14.957 5.793l3.25 3.25-1.414 1.414-3.25-3.25-9.707 9.707-1.414-1.414 9.707-9.707-3.25-3.25 1.414-1.414 3.25 3.25L22 2.586 21.414 2l-6.457 3.793zm-1.39 10.59A8.001 8.001 0 0 1 4.07 6.887l9.498 9.497zm-8.468-8.468A8.001 8.001 0 0 0 15.513 17.5L5.632 7.619z" fill="currentColor"/>
-                </svg>
-              </div>
-              <span>Promotions</span>
-              {shopStats.activePromotions > 0 && (
-                <span className="badge success">{shopStats.activePromotions}</span>
-              )}
-            </Link>
+            
             
             <Link 
               to="/seller-dashboard/settings" 
@@ -356,11 +299,9 @@ const ShopOwnerDashboard = () => {
         {/* Content */}
         <div className="dashboard-content">
           <Routes>
-            <Route path="/" element={<Analytics />} />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/" element={<ProductManagement />} />
             <Route path="/products" element={<ProductManagement />} />
             <Route path="/orders" element={<OrderManagement />} />
-            <Route path="/promotions" element={<PromotionManagement />} />
             <Route path="/settings" element={<ShopSettings />} />
           </Routes>
         </div>

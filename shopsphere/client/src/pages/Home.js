@@ -60,21 +60,8 @@ const Home = () => {
   return (
     <div className="home-page">
       {/* Hero Banner */}
-      {/* <section className="hero-banner">
-      
-        <div className="hero-content">
-          <h1>Flash Sale: Limited Time Offers You Can't Resist!</h1>
-          <p>Unlock amazing savings on top-rated items - hurry, these deals won't last!</p>
-          <Link to="/flash-sale" className="hero-button">Shop Now</Link>
-        </div>
-      </section> */}
       <FlashSaleAd/>
-      {/* {error && (
-        <div className="error-container">
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Try Again</button>
-        </div>
-      )} */}
+      
 
       {/* Categories Section */}
       <section className="categories-section">
@@ -115,72 +102,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Flash Sale Section */}
-      <section className="flash-sale-section">
-        <div className="section-header">
-          <h2>Flash Sale</h2>
-          <div className="timer">
-            <div className="time-unit">
-              <span className="time-value">12</span>
-              <span className="time-label">Hours</span>
-            </div>
-            <div className="time-separator">:</div>
-            <div className="time-unit">
-              <span className="time-value">34</span>
-              <span className="time-label">Minutes</span>
-            </div>
-            <div className="time-separator">:</div>
-            <div className="time-unit">
-              <span className="time-value">56</span>
-              <span className="time-label">Seconds</span>
-            </div>
-          </div>
-        </div>
-        <div className="products-grid">
-          {flashSaleProducts.map(product => (
-            <Link 
-              key={product._id} 
-              to={`/products/${product._id}`}
-              className="product-card"
-            >
-              <div className="product-image">
-                <img 
-                  src={product.images && product.images.length > 0 
-                    ? product.images[0] 
-                    : '/images/placeholder-product.png'} 
-                  alt={product.name} 
-                />
-                {product.salePrice && (
-                  <span className="discount-badge">
-                    {calculateDiscount(product.price, product.salePrice)}% OFF
-                  </span>
-                )}
-              </div>
-              <div className="product-info">
-                <h3 className="product-name">{product.name}</h3>
-                <div className="product-price">
-                  {product.salePrice ? (
-                    <>
-                      <span className="sale-price">{formatPrice(product.salePrice)}</span>
-                      <span className="original-price">{formatPrice(product.price)}</span>
-                    </>
-                  ) : (
-                    <span className="regular-price">{formatPrice(product.price)}</span>
-                  )}
-                </div>
-                <div className="product-rating">
-                  <div className="stars" style={{ '--rating': product.rating || 0 }}></div>
-                  <span>({product.reviews?.length || 0})</span>
-                </div>
-              </div>
-              <button className="add-to-cart">Add to Cart</button>
-            </Link>
-          ))}
-        </div>
-        <div className="view-more-container">
-          <Link to="/flash-sale" className="view-more-button">View More</Link>
-        </div>
-      </section>
+      
+      
 
       {/* Featured Products */}
       <section className="featured-products-section">

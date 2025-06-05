@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,46 +13,90 @@ const Cart = () => {
   const [promoMessage, setPromoMessage] = useState('');
   const [promoError, setPromoError] = useState(false);
   
+  // Debug cart state
+  useEffect(() => {
+    console.log('=== CART DEBUG INFO ===');
+    console.log('Cart object:', cart);
+    console.log('Cart items:', cart?.items);
+    console.log('Cart items length:', cart?.items?.length);
+    console.log('Cart loading:', loading);
+    console.log('User:', user);
+    console.log('========================');
+  }, [cart, loading, user]);
+  
+  // Helper function to get image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return '/images/placeholder-product.png';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `http://localhost:5000${imagePath}`;
+  };
+
+  // Generate unique key for cart item
+  const getItemKey = (item) => {
+    const attributesKey = Object.keys(item.attributes || {}).length > 0 
+      ? JSON.stringify(item.attributes) 
+      : '';
+    return `${item.productId || item._id}-${attributesKey}`;
+  };
+  
   // Handle quantity change
-  const handleQuantityChange = (productId, quantity, attributes) => {
-    if (quantity > 0) {
-      updateQuantity(productId, quantity, attributes);
+  const handleQuantityChange = async (item, newQuantity) => {
+    if (newQuantity < 1) return;
+    
+    try {
+      console.log('Updating quantity:', {
+        productId: item.productId || item._id,
+        quantity: newQuantity,
+        attributes: item.attributes
+      });
+      
+      await updateQuantity(item.productId || item._id, newQuantity, item.attributes || {});
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      alert('Failed to update quantity. Please try again.');
     }
   };
   
   // Handle remove item
-  const handleRemoveItem = (productId, attributes) => {
+  const handleRemoveItem = async (item) => {
     if (window.confirm('Are you sure you want to remove this item from your cart?')) {
-      removeFromCart(productId, attributes);
+      try {
+        console.log('Removing item:', {
+          productId: item.productId || item._id,
+          attributes: item.attributes
+        });
+        
+        await removeFromCart(item.productId || item._id, item.attributes || {});
+      } catch (error) {
+        console.error('Error removing item:', error);
+        alert('Failed to remove item. Please try again.');
+      }
     }
   };
   
-  // Apply promo code
-  const handleApplyPromoCode = () => {
-    if (!promoCode.trim()) {
-      setPromoError(true);
-      setPromoMessage('Please enter a promo code');
-      return;
-    }
-    
-    // Placeholder for promo code logic
-    setTimeout(() => {
-      if (promoCode.toUpperCase() === 'DISCOUNT10') {
-        setPromoError(false);
-        setPromoMessage('Promo code applied! 10% discount');
-        // In a real app, this would call an API endpoint
-      } else {
-        setPromoError(true);
-        setPromoMessage('Invalid promo code');
+  // Handle clear cart
+  const handleClearCart = async () => {
+    if (window.confirm('Are you sure you want to clear your cart?')) {
+      try {
+        await clearCart();
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+        alert('Failed to clear cart. Please try again.');
       }
-    }, 500);
+    }
   };
   
   // Calculate cart summary
   const calculateSummary = () => {
-    const subtotal = cart.totalAmount;
+    const cartItems = cart?.items || [];
+    
+    // Calculate subtotal from items if totalAmount is not available
+    const subtotal = cart?.totalAmount || cartItems.reduce((total, item) => {
+      return total + ((item.price || 0) * (item.quantity || 1));
+    }, 0);
+    
     const shipping = subtotal > 50 ? 0 : 5.99;
-    const discount = 0; // Placeholder for discount logic
+    const discount = cart?.discount || 0;
     const total = subtotal + shipping - discount;
     
     return {
@@ -72,6 +116,7 @@ const Cart = () => {
     }
   };
   
+  // Show loading state
   if (loading) {
     return (
       <div className="loading-container">
@@ -81,15 +126,19 @@ const Cart = () => {
     );
   }
   
+  // Get cart items - handle different possible structures
+  const cartItems = cart?.items || [];
   const cartSummary = calculateSummary();
+  
+  console.log('Rendering cart with items:', cartItems);
   
   return (
     <div className="cart-page">
       <div className="page-header">
-        <h1>Your Shopping Cart</h1>
+        <h1>Your Shopping Cart ({cartItems.length} items)</h1>
       </div>
       
-      {cart.items.length === 0 ? (
+      {cartItems.length === 0 ? (
         <div className="empty-cart">
           <div className="empty-cart-icon">🛒</div>
           <h2>Your cart is empty</h2>
@@ -109,91 +158,110 @@ const Cart = () => {
               <div className="cart-col action-col"></div>
             </div>
             
-            {cart.items.map((item, index) => (
-              <div key={index} className="cart-item">
-                <div className="cart-col product-col">
-                  <div className="product-info">
-                    <Link to={`/products/${item.productId}`} className="product-image">
-                      <img 
-                        src={item.image || '/images/placeholder-product.png'} 
-                        alt={item.name} 
-                      />
-                    </Link>
-                    <div className="product-details">
-                      <Link to={`/products/${item.productId}`} className="product-name">
-                        {item.name}
+            {cartItems.map((item, index) => {
+              console.log(`Rendering cart item ${index}:`, item);
+              
+              return (
+                <div key={getItemKey(item)} className="cart-item">
+                  <div className="cart-col product-col">
+                    <div className="product-info">
+                      <Link to={`/products/${item.productId || item._id}`} className="product-image">
+                        <img 
+                          src={getImageUrl(item.image)}
+                          alt={item.name || 'Product'}
+                          onError={(e) => {
+                            console.log('Image failed to load:', e.target.src);
+                            e.target.src = '/images/placeholder-product.png';
+                          }}
+                        />
                       </Link>
-                      {Object.keys(item.attributes || {}).length > 0 && (
-                        <div className="product-attributes">
-                          {Object.entries(item.attributes).map(([key, value]) => (
-                            <span key={key}>
-                              {key}: {value}
-                            </span>
-                          ))}
+                      <div className="product-details">
+                        <Link to={`/products/${item.productId || item._id}`} className="product-name">
+                          {item.name || 'Unknown Product'}
+                        </Link>
+                        {item.attributes && Object.keys(item.attributes).length > 0 && (
+                          <div className="product-attributes">
+                            {Object.entries(item.attributes).map(([key, value]) => (
+                              <span key={key} className="attribute-item">
+                                <strong>{key}:</strong> {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="product-sku">
+                          ID: {item.productId || item._id || 'N/A'}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="cart-col price-col">
-                  ${item.price.toFixed(2)}
-                </div>
-                
-                <div className="cart-col quantity-col">
-                  <div className="quantity-selector">
+                  
+                  <div className="cart-col price-col">
+                    <span className="price-label">Price:</span>
+                    <span className="price-value">${(item.price || 0).toFixed(2)}</span>
+                  </div>
+                  
+                  <div className="cart-col quantity-col">
+                    <span className="quantity-label">Qty:</span>
+                    <div className="quantity-selector">
+                      <button 
+                        className="quantity-btn decrease"
+                        onClick={() => handleQuantityChange(item, (item.quantity || 1) - 1)}
+                        disabled={(item.quantity || 1) <= 1}
+                        aria-label="Decrease quantity"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={item.quantity || 1}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (value && value > 0) {
+                            handleQuantityChange(item, value);
+                          }
+                        }}
+                        min="1"
+                        max="99"
+                        className="quantity-input"
+                      />
+                      <button 
+                        className="quantity-btn increase"
+                        onClick={() => handleQuantityChange(item, (item.quantity || 1) + 1)}
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="cart-col total-col">
+                    <span className="total-label">Total:</span>
+                    <span className="total-value">
+                      ${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <div className="cart-col action-col">
                     <button 
-                      onClick={() => handleQuantityChange(item.productId, item.quantity - 1, item.attributes)}
-                      disabled={item.quantity <= 1}
+                      className="remove-item-btn"
+                      onClick={() => handleRemoveItem(item)}
+                      aria-label={`Remove ${item.name || 'item'} from cart`}
+                      title={`Remove ${item.name || 'item'}`}
                     >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value);
-                        if (value > 0) {
-                          handleQuantityChange(item.productId, value, item.attributes);
-                        }
-                      }}
-                      min="1"
-                    />
-                    <button 
-                      onClick={() => handleQuantityChange(item.productId, item.quantity + 1, item.attributes)}
-                    >
-                      +
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+                        <path fill="none" d="M0 0h24v24H0z"/>
+                        <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z" fill="currentColor"/>
+                      </svg>
                     </button>
                   </div>
                 </div>
-                
-                <div className="cart-col total-col">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </div>
-                
-                <div className="cart-col action-col">
-                  <button 
-                    className="remove-item-btn"
-                    onClick={() => handleRemoveItem(item.productId, item.attributes)}
-                    aria-label="Remove item"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-                      <path fill="none" d="M0 0h24v24H0z"/>
-                      <path d="M17 6h5v2h-2v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8H2V6h5V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v3zm1 2H6v12h12V8zm-9 3h2v6H9v-6zm4 0h2v6h-2v-6zM9 4v2h6V4H9z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             
             <div className="cart-actions">
               <button 
                 className="clear-cart-btn"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to clear your cart?')) {
-                    clearCart();
-                  }
-                }}
+                onClick={handleClearCart}
               >
                 Clear Cart
               </button>
@@ -206,45 +274,40 @@ const Cart = () => {
           <div className="cart-summary">
             <h2>Order Summary</h2>
             
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>${cartSummary.subtotal.toFixed(2)}</span>
-            </div>
-            
-            <div className="summary-row">
-              <span>Shipping</span>
-              {cartSummary.shipping === 0 ? (
-                <span className="free-shipping">Free</span>
-              ) : (
-                <span>${cartSummary.shipping.toFixed(2)}</span>
-              )}
-            </div>
-            
-            {cartSummary.discount > 0 && (
-              <div className="summary-row discount">
-                <span>Discount</span>
-                <span>-${cartSummary.discount.toFixed(2)}</span>
+            <div className="summary-details">
+              <div className="summary-row">
+                <span>Subtotal ({cartItems.length} items)</span>
+                <span>${cartSummary.subtotal.toFixed(2)}</span>
               </div>
-            )}
-            
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>${cartSummary.total.toFixed(2)}</span>
-            </div>
-            
-            <div className="promo-code-container">
-              <input
-                type="text"
-                placeholder="Enter promo code"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-              />
-              <button 
-                className="apply-promo-btn"
-                onClick={handleApplyPromoCode}
-              >
-                Apply
-              </button>
+              
+              <div className="summary-row">
+                <span>Shipping</span>
+                {cartSummary.shipping === 0 ? (
+                  <span className="free-shipping">Free</span>
+                ) : (
+                  <span>${cartSummary.shipping.toFixed(2)}</span>
+                )}
+              </div>
+              
+              {cartSummary.shipping > 0 && cartSummary.subtotal < 50 && (
+                <div className="shipping-note">
+                  <small>Free shipping on orders over $50</small>
+                </div>
+              )}
+              
+              {cartSummary.discount > 0 && (
+                <div className="summary-row discount">
+                  <span>Discount</span>
+                  <span>-${cartSummary.discount.toFixed(2)}</span>
+                </div>
+              )}
+              
+              <hr className="summary-divider" />
+              
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>${cartSummary.total.toFixed(2)}</span>
+              </div>
             </div>
             
             {promoMessage && (
@@ -256,56 +319,51 @@ const Cart = () => {
             <button 
               className="checkout-btn"
               onClick={handleCheckout}
+              disabled={cartItems.length === 0}
             >
-              Proceed to Checkout
+              {!user ? 'Login to Checkout' : 'Proceed to Checkout'}
             </button>
             
-            <div className="secure-checkout">
-              <div className="secure-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+            <div className="security-info">
+              <div className="security-item">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
                   <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M19 10h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V11a1 1 0 0 1 1-1h1V9a7 7 0 1 1 14 0v1zm-2 0V9A5 5 0 0 0 7 9v1h10zm-6 4v4h2v-4h-2z" fill="currentColor"/>
+                  <path d="M12 1l8.217 1.826a1 1 0 0 1 .783.976v9.987a6 6 0 0 1-2.672 4.992L12 23l-6.328-4.219A6 6 0 0 1 3 13.79V3.802a1 1 0 0 1 .783-.976L12 1zm0 2.049L5 4.604v9.185a4 4 0 0 0 1.781 3.328L12 20.597l5.219-3.48A4 4 0 0 0 19 13.79V4.604L12 3.05zM10 7h4v2h-4V7zm0 4h4v2h-4v-2z" fill="currentColor"/>
                 </svg>
+                <span>Secure Checkout</span>
               </div>
-              <span>Secure Checkout</span>
-            </div>
-            
-            <div className="payment-methods">
-              <span className="payment-method">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                  <rect width="40" height="24" rx="4" fill="#fff"/>
-                  <path d="M13 10h3v7h-3z" fill="#213f99"/>
-                  <path d="M13 7h3v2h-3z" fill="#213f99"/>
-                  <path d="M24 10h3v7h-3z" fill="#213f99"/>
-                  <path d="M16 14c0-2 2-2 2-2h2v-2h-2s-4 0-4 4 4 4 4 4h2v-2h-2s-2 0-2-2z" fill="#213f99"/>
+              <div className="security-item">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+                  <path fill="none" d="M0 0h24v24H0z"/>
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor"/>
                 </svg>
-              </span>
-              <span className="payment-method">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                  <rect width="40" height="24" rx="4" fill="#fff"/>
-                  <path d="M10 8h5v8h-5z" fill="#ff5f00"/>
-                  <path d="M11 12a5 5 0 0 1 1.9-4H10v8h2.9a5 5 0 0 1-1.9-4z" fill="#eb001b"/>
-                  <path d="M30 12a5 5 0 0 1-8 4h2.9v-8H22a5 5 0 0 1 8 4z" fill="#f79e1b"/>
-                </svg>
-              </span>
-              <span className="payment-method">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                  <rect width="40" height="24" rx="4" fill="#fff"/>
-                  <path d="M29 8H11c-.6 0-1 .4-1 1v6c0 .6.4 1 1 1h18c.6 0 1-.4 1-1V9c0-.6-.4-1-1-1z" fill="#FCB941"/>
-                  <path d="M12 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-                  <path d="M24 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="#FFF"/>
-                </svg>
-              </span>
-              <span className="payment-method">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 40 24">
-                  <rect width="40" height="24" rx="4" fill="#fff"/>
-                  <path d="M24 7H14v10h10V7z" fill="#006FCF"/>
-                  <path d="M18 10l-1 2-1-2h-1l1.5 3L15 16h1l1-2 1 2h1l-1.5-3L19 10h-1z" fill="#FFF"/>
-                  <path d="M24 10h-1l-1 3-1-3h-1l1.5 4h1l1.5-4z" fill="#FFF"/>
-                </svg>
-              </span>
+                <span>30-day Returns</span>
+              </div>
             </div>
           </div>
+        </div>
+      )}
+      
+      {/* Debug Information - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{ 
+          position: 'fixed', 
+          bottom: '10px', 
+          right: '10px', 
+          background: 'black', 
+          color: 'white', 
+          padding: '10px', 
+          borderRadius: '5px',
+          fontSize: '12px',
+          maxWidth: '300px',
+          overflow: 'auto',
+          maxHeight: '200px'
+        }}>
+          <strong>Debug Info:</strong><br/>
+          Cart Items Count: {cartItems.length}<br/>
+          Loading: {loading.toString()}<br/>
+          User: {user ? 'Logged in' : 'Guest'}<br/>
+          Cart Total: ${cartSummary.subtotal.toFixed(2)}
         </div>
       )}
     </div>

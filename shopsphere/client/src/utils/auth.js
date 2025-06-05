@@ -9,11 +9,15 @@ export const authUtils = {
     try {
       console.log('💾 Saving auth data:', { userEmail: user.email, userType: user.userType });
       
+      // Set expiration to 30 days (much longer than before)
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+      
       const authData = {
         token,
         user,
         timestamp: Date.now(),
-        expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+        expiresAt: Date.now() + THIRTY_DAYS,
+        lastAccess: Date.now()
       };
       
       // Save to multiple storage keys for redundancy
@@ -24,7 +28,7 @@ export const authUtils = {
       // Set axios default header immediately
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      console.log('✅ Auth data saved successfully');
+      console.log('✅ Auth data saved successfully with 30-day expiration');
       return true;
     } catch (error) {
       console.error('❌ Error saving auth data:', error);
@@ -50,15 +54,27 @@ export const authUtils = {
       if (authDataStr) {
         authData = JSON.parse(authDataStr);
         
-        // Check if token is expired
-        if (authData.expiresAt && Date.now() > authData.expiresAt) {
-          console.log('❌ Token expired, clearing auth data');
+        // Check if token is expired (with some buffer time)
+        const currentTime = Date.now();
+        const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+        
+        if (authData.expiresAt && currentTime > (authData.expiresAt - bufferTime)) {
+          console.log('❌ Token expired or about to expire, clearing auth data');
           authUtils.clearAuth();
           return null;
         }
+        
+        // Update last access time
+        authData.lastAccess = currentTime;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
       }
       
-      console.log('✅ Auth data retrieved:', { userEmail: user.email, userType: user.userType });
+      console.log('✅ Auth data retrieved:', { 
+        userEmail: user.email, 
+        userType: user.userType,
+        daysUntilExpiry: authData ? Math.round((authData.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)) : 'unknown'
+      });
+      
       return { token, user, authData };
     } catch (error) {
       console.error('❌ Error getting auth data:', error);
@@ -136,14 +152,62 @@ export const authUtils = {
     return authUtils.hasRole('customer');
   },
 
-  // Refresh token if needed (placeholder for future implementation)
+  // Extend token expiration (useful for keeping active users logged in)
+  extendToken: () => {
+    try {
+      const auth = authUtils.getAuth();
+      if (!auth || !auth.authData) {
+        console.log('❌ No auth data to extend');
+        return false;
+      }
+
+      // Extend expiration by another 30 days
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+      auth.authData.expiresAt = Date.now() + THIRTY_DAYS;
+      auth.authData.lastAccess = Date.now();
+      
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth.authData));
+      
+      console.log('✅ Token expiration extended by 30 days');
+      return true;
+    } catch (error) {
+      console.error('❌ Error extending token:', error);
+      return false;
+    }
+  },
+
+  // Refresh token if needed
   refreshToken: async () => {
     try {
       const auth = authUtils.getAuth();
-      if (!auth) return false;
+      if (!auth) {
+        console.log('❌ No auth data for token refresh');
+        return false;
+      }
 
-      // In the future, you can implement token refresh logic here
-      console.log('🔄 Token refresh not implemented yet');
+      // Check if token is close to expiry (within 7 days)
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      const timeUntilExpiry = auth.authData?.expiresAt - Date.now();
+      
+      if (timeUntilExpiry < sevenDays) {
+        console.log('🔄 Token close to expiry, attempting refresh...');
+        
+        try {
+          // Try to refresh token with backend
+          const response = await axios.post('/api/auth/refresh-token');
+          
+          if (response.data.token) {
+            authUtils.saveAuth(response.data.token, auth.user);
+            console.log('✅ Token refreshed successfully');
+            return true;
+          }
+        } catch (refreshError) {
+          console.log('❌ Token refresh failed, extending current token');
+          // If refresh fails, extend current token
+          return authUtils.extendToken();
+        }
+      }
+      
       return true;
     } catch (error) {
       console.error('❌ Token refresh failed:', error);
@@ -151,18 +215,87 @@ export const authUtils = {
     }
   },
 
+  // Get time until token expiry
+  getTimeUntilExpiry: () => {
+    const auth = authUtils.getAuth();
+    if (!auth || !auth.authData) return null;
+    
+    const timeLeft = auth.authData.expiresAt - Date.now();
+    const daysLeft = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+    const hoursLeft = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    
+    return {
+      milliseconds: timeLeft,
+      days: daysLeft,
+      hours: hoursLeft,
+      isExpiringSoon: timeLeft < (7 * 24 * 60 * 60 * 1000) // Less than 7 days
+    };
+  },
+
+  // Auto-extend token for active users
+  autoExtendToken: () => {
+    const auth = authUtils.getAuth();
+    if (!auth || !auth.authData) return false;
+
+    const lastAccess = auth.authData.lastAccess || auth.authData.timestamp;
+    const timeSinceLastAccess = Date.now() - lastAccess;
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    // If user was active in the last day and token expires in less than 7 days, extend it
+    if (timeSinceLastAccess < oneDay) {
+      const timeUntilExpiry = authUtils.getTimeUntilExpiry();
+      if (timeUntilExpiry && timeUntilExpiry.isExpiringSoon) {
+        console.log('🔄 Auto-extending token for active user');
+        return authUtils.extendToken();
+      }
+    }
+
+    return false;
+  },
+
   // Debug function to log all auth state
   debugAuth: () => {
     const auth = authUtils.getAuth();
+    const timeInfo = authUtils.getTimeUntilExpiry();
+    
     console.log('🔍 Auth Debug Info:', {
       isAuthenticated: authUtils.isAuthenticated(),
       hasToken: !!localStorage.getItem('token'),
       hasUser: !!localStorage.getItem('user'),
       currentUser: auth?.user,
       tokenLength: localStorage.getItem('token')?.length,
-      axiosHeaderSet: !!axios.defaults.headers.common['Authorization']
+      axiosHeaderSet: !!axios.defaults.headers.common['Authorization'],
+      timeUntilExpiry: timeInfo,
+      lastAccess: auth?.authData?.lastAccess ? new Date(auth.authData.lastAccess).toLocaleString() : 'unknown'
     });
+    
     return auth;
+  },
+
+  // Initialize auth state (call this on app startup)
+  initAuth: () => {
+    try {
+      console.log('🚀 Initializing auth state...');
+      
+      const auth = authUtils.getAuth();
+      if (auth) {
+        // Set up axios header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
+        
+        // Auto-extend if needed
+        authUtils.autoExtendToken();
+        
+        console.log('✅ Auth state initialized successfully');
+        return true;
+      } else {
+        console.log('ℹ️ No existing auth state found');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error initializing auth state:', error);
+      authUtils.clearAuth();
+      return false;
+    }
   }
 };
 
@@ -184,11 +317,24 @@ axios.interceptors.response.use(
   }
 );
 
-// Initialize axios header on module load
-const initAuth = authUtils.getAuth();
-if (initAuth) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${initAuth.token}`;
-  console.log('🔐 Axios header initialized on module load');
-}
+// Set up periodic token extension for active users
+let tokenExtensionInterval;
+
+const startTokenExtensionCheck = () => {
+  // Check every hour
+  tokenExtensionInterval = setInterval(() => {
+    if (authUtils.isAuthenticated()) {
+      authUtils.autoExtendToken();
+    } else {
+      clearInterval(tokenExtensionInterval);
+    }
+  }, 60 * 60 * 1000); // 1 hour
+};
+
+// Initialize auth on module load
+authUtils.initAuth();
+
+// Start token extension checks
+startTokenExtensionCheck();
 
 export default authUtils;

@@ -99,12 +99,7 @@ const Register = () => {
         </div>
         <button type="submit" className="btn-primary">Register</button>
       </form>
-      <div className="social-login">
-        <p>Or register with:</p>
-        <button className="btn-google">Google</button>
-        <button className="btn-facebook">Facebook</button>
-        <button className="btn-apple">Apple</button>
-      </div>
+      
       <p>
         Already have an account? <a href="/login">Login</a>
       </p>

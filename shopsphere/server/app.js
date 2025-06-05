@@ -1,10 +1,13 @@
-// server/app.js - WITH SHOP-BASED PRODUCT MANAGEMENT
+// server/app.js - COMPLETE SHOPSPHERE API WITH SHOP-BASED PRODUCT MANAGEMENT
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config();
 
 console.log('🚀 Starting SHOPSPHERE API...');
@@ -146,9 +149,17 @@ const shopSchema = new mongoose.Schema({
       required: true,
       min: 0
     },
+    salePrice: {
+      type: Number,
+      min: 0
+    },
     category: {
       type: String,
       required: true
+    },
+    subCategory: {
+      type: String,
+      default: ''
     },
     inventory: {
       quantity: {
@@ -164,6 +175,11 @@ const shopSchema = new mongoose.Schema({
     images: [{
       type: String
     }],
+    attributes: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
     isActive: {
       type: Boolean,
       default: true
@@ -178,6 +194,18 @@ const shopSchema = new mongoose.Schema({
       min: 0,
       max: 5
     },
+    reviews: [{
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      },
+      rating: Number,
+      comment: String,
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
     createdAt: {
       type: Date,
       default: Date.now
@@ -202,9 +230,131 @@ const categorySchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  image: {
+    type: String,
+    default: ''
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
   isActive: {
     type: Boolean,
     default: true
+  }
+}, {
+  timestamps: true
+});
+
+// Cart Schema
+const cartSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+  items: [{
+    productId: {
+      type: String,
+      required: true
+    },
+    shopId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Shop',
+      required: true
+    },
+    name: String,
+    price: Number,
+    image: String,
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    attributes: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {}
+    }
+  }],
+  totalAmount: {
+    type: Number,
+    default: 0
+  }
+}, {
+  timestamps: true
+});
+
+// Order Schema
+const orderSchema = new mongoose.Schema({
+  orderNumber: {
+    type: String,
+    unique: true,
+    required: true
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  items: [{
+    productId: String,
+    shopId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Shop'
+    },
+    name: String,
+    price: Number,
+    quantity: Number,
+    attributes: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {}
+    }
+  }],
+  billing: {
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String
+    },
+    subtotal: Number,
+    shipping: Number,
+    discount: Number,
+    total: Number
+  },
+  shipping: {
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String,
+      country: String
+    },
+    method: String,
+    trackingNumber: String,
+    estimatedDelivery: {
+      from: Date,
+      to: Date
+    }
+  },
+  payment: {
+    method: String,
+    transactionId: String,
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed'],
+      default: 'pending'
+    }
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending'
   }
 }, {
   timestamps: true
@@ -214,8 +364,10 @@ const categorySchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 const Shop = mongoose.model('Shop', shopSchema);
 const Category = mongoose.model('Category', categorySchema);
+const Cart = mongoose.model('Cart', cartSchema);
+const Order = mongoose.model('Order', orderSchema);
 
-console.log('✅ Database models created (User, Shop, Category)');
+console.log('✅ Database models created (User, Shop, Category, Cart, Order)');
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -242,6 +394,13 @@ const comparePassword = async (password, hashedPassword) => {
 // Helper function to check if database is connected
 const isDatabaseConnected = () => {
   return mongoose.connection.readyState === 1;
+};
+
+// Generate unique order number
+const generateOrderNumber = () => {
+  const timestamp = Date.now().toString();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `ORD-${timestamp.slice(-6)}${random}`;
 };
 
 // Authentication middleware
@@ -284,6 +443,17 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Shop owner middleware
+const isShopOwner = (req, res, next) => {
+  if (req.user.userType !== 'shop_owner') {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Shop owner role required.'
+    });
+  }
+  next();
+};
+
 // Get or create shop for user
 const getOrCreateUserShop = async (userId, userInfo = null) => {
   try {
@@ -318,6 +488,43 @@ const getOrCreateUserShop = async (userId, userInfo = null) => {
 };
 
 // ============================================================================
+// FILE UPLOAD CONFIGURATION
+// ============================================================================
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 5 // Maximum 5 files
+  },
+  fileFilter: function (req, file, cb) {
+    // Check file type
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// ============================================================================
 // IN-MEMORY FALLBACK STORAGE
 // ============================================================================
 
@@ -330,6 +537,8 @@ let inMemoryCategories = [
   { _id: '4', name: 'Home & Garden', description: 'Home and garden items', isActive: true },
   { _id: '5', name: 'Sports', description: 'Sports equipment', isActive: true }
 ];
+let inMemoryCarts = [];
+let inMemoryOrders = [];
 
 // ============================================================================
 // MIDDLEWARE SETUP
@@ -337,6 +546,7 @@ let inMemoryCategories = [
 
 // Security middleware
 app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
   contentSecurityPolicy: {
     directives: {
@@ -361,6 +571,9 @@ app.use(cors(corsOptions));
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files (uploaded images)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -429,8 +642,22 @@ app.get('/', (req, res) => {
     collections: {
       users: 'User registration and authentication',
       shops: 'Shop data with embedded products (one shop per owner)',
-      categories: 'Product categories'
+      categories: 'Product categories',
+      carts: 'User shopping carts',
+      orders: 'Order management'
     }
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  console.log('✅ Health route accessed');
+  res.json({
+    status: 'OK',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: isDatabaseConnected() ? 'Connected' : 'Disconnected'
   });
 });
 
@@ -445,42 +672,46 @@ app.get('/api', (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       auth: {
-        register: 'POST /api/auth/register - Save to users collection',
-        login: 'POST /api/auth/login - Authenticate user'
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login'
+      },
+      users: {
+        profile: 'GET /api/users/profile',
+        addresses: 'GET /api/users/addresses'
       },
       products: {
-        list: 'GET /api/products - Get products from all shops',
-        shopProducts: 'GET /api/products/shop - Get products from authenticated user\'s shop',
-        create: 'POST /api/products - Save to authenticated user\'s shop',
-        update: 'PUT /api/products/:id - Update in authenticated user\'s shop',
-        delete: 'DELETE /api/products/:id - Delete from authenticated user\'s shop'
+        list: 'GET /api/products',
+        shopProducts: 'GET /api/products/shop OR GET /api/products/shop/products',
+        create: 'POST /api/products',
+        update: 'PUT /api/products/:id',
+        delete: 'DELETE /api/products/:id'
+      },
+      shop: {
+        info: 'GET /api/shop/info',
+        update: 'PUT /api/shop/info'
       },
       categories: 'GET /api/categories',
-      health: 'GET /api/health'
+      cart: {
+        get: 'GET /api/cart',
+        addItem: 'POST /api/cart/items',
+        updateItem: 'PUT /api/cart/items/:productId',
+        removeItem: 'DELETE /api/cart/items/:productId',
+        clear: 'DELETE /api/cart'
+      },
+      orders: {
+        list: 'GET /api/orders',
+        create: 'POST /api/orders',
+        getById: 'GET /api/orders/:id'
+      }
     }
   });
 });
 
 // ============================================================================
-// HEALTH ROUTES
+// AUTH ROUTES
 // ============================================================================
 
-app.get('/api/health', (req, res) => {
-  console.log('✅ Health route accessed');
-  res.json({
-    status: 'OK',
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: isDatabaseConnected() ? 'Connected' : 'Disconnected'
-  });
-});
-
-// ============================================================================
-// AUTH ROUTES (REAL USER REGISTRATION AND LOGIN)
-// ============================================================================
-
-// User Registration (SAVES TO USERS COLLECTION)
+// User Registration
 app.post('/api/auth/register', async (req, res) => {
   console.log('✅ Register route accessed');
   console.log('Registration data:', { ...req.body, password: '[HIDDEN]' });
@@ -521,7 +752,7 @@ app.post('/api/auth/register', async (req, res) => {
       });
       
       savedUser = await newUser.save();
-      console.log('👤 User saved to database (users collection):', savedUser._id);
+      console.log('👤 User saved to database:', savedUser._id);
       
       // If user is a shop owner, create their shop
       if (savedUser.userType === 'shop_owner') {
@@ -579,9 +810,7 @@ app.post('/api/auth/register', async (req, res) => {
         firstName: savedUser.firstName,
         lastName: savedUser.lastName,
         userType: savedUser.userType
-      },
-      savedTo: isDatabaseConnected() ? 'database (users collection)' : 'memory',
-      shopCreated: savedUser.userType === 'shop_owner'
+      }
     });
     
   } catch (error) {
@@ -594,7 +823,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// User Login (AUTHENTICATES FROM USERS COLLECTION)
+// User Login
 app.post('/api/auth/login', async (req, res) => {
   console.log('✅ Login route accessed');
   console.log('Login attempt:', { email: req.body.email, userType: req.body.userType });
@@ -676,8 +905,7 @@ app.post('/api/auth/login', async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         userType: user.userType
-      },
-      authenticatedFrom: isDatabaseConnected() ? 'database (users collection)' : 'memory'
+      }
     });
     
   } catch (error) {
@@ -691,82 +919,165 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ============================================================================
-// PRODUCTS ROUTES (SHOP-SPECIFIC)
+// USER ROUTES
 // ============================================================================
 
-// Get all products (FROM ALL SHOPS COLLECTION) - For customers browsing
-app.get('/api/products', async (req, res) => {
-  console.log('✅ Get all products route accessed');
+// Get current user profile
+app.get('/api/users/profile', authenticateToken, (req, res) => {
+  console.log('✅ User profile route accessed');
+  res.json({
+    success: true,
+    user: {
+      id: req.user._id,
+      email: req.user.email,
+      firstName: req.user.firstName,
+      lastName: req.user.lastName,
+      userType: req.user.userType,
+      phoneNumber: req.user.phoneNumber,
+      profileImage: req.user.profileImage
+    }
+  });
+});
+
+// Update user profile
+app.put('/api/users/profile', authenticateToken, async (req, res) => {
+  console.log('✅ Update user profile route accessed');
   
   try {
-    let allProducts = [];
+    const { firstName, lastName, phoneNumber } = req.body;
     
     if (isDatabaseConnected()) {
-      // Get products from all shops in database
-      const shops = await Shop.find().populate('ownerId', 'firstName lastName email');
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { firstName, lastName, phoneNumber },
+        { new: true, select: '-password' }
+      );
       
-      shops.forEach(shop => {
-        shop.products.forEach(product => {
-          allProducts.push({
-            ...product.toObject(),
-            shopId: shop._id,
-            shopName: shop.shopName,
-            ownerName: shop.ownerId ? 
-              `${shop.ownerId.firstName} ${shop.ownerId.lastName}` : 
-              'Unknown Owner'
-          });
-        });
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: updatedUser
       });
-      
-      console.log(`📦 Found ${allProducts.length} products from ${shops.length} shops in database`);
     } else {
-      // Fallback to mock data from memory
-      inMemoryShops.forEach(shop => {
-        const owner = inMemoryUsers.find(u => u._id === shop.ownerId);
-        shop.products?.forEach(product => {
-          allProducts.push({
-            ...product,
-            shopId: shop._id,
-            shopName: shop.shopName,
-            ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown Owner'
-          });
+      // Update in memory
+      const userIndex = inMemoryUsers.findIndex(u => u._id === req.user._id);
+      if (userIndex !== -1) {
+        inMemoryUsers[userIndex] = {
+          ...inMemoryUsers[userIndex],
+          firstName,
+          lastName,
+          phoneNumber
+        };
+        res.json({
+          success: true,
+          message: 'Profile updated successfully',
+          user: inMemoryUsers[userIndex]
         });
-      });
-      
-      console.log(`📦 Found ${allProducts.length} products from ${inMemoryShops.length} shops in memory`);
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
     }
-    
-    res.json({
-      success: true,
-      products: allProducts,
-      total: allProducts.length,
-      source: isDatabaseConnected() ? 'database (all shops)' : 'memory'
-    });
-    
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error updating profile:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch products',
+      message: 'Failed to update profile',
       error: error.message
     });
   }
 });
 
-// Get shop products (ONLY FOR AUTHENTICATED SHOP OWNER)
-app.get('/api/products/shop', authenticateToken, async (req, res) => {
-  console.log('✅ Get shop products route accessed');
-  console.log('User:', req.user.email, 'Type:', req.user.userType);
+// Get user addresses
+app.get('/api/users/addresses', authenticateToken, async (req, res) => {
+  console.log('✅ User addresses route accessed');
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
+    if (isDatabaseConnected()) {
+      const user = await User.findById(req.user._id);
+      res.json({
+        success: true,
+        addresses: user.addresses || []
+      });
+    } else {
+      const user = inMemoryUsers.find(u => u._id === req.user._id);
+      res.json({
+        success: true,
+        addresses: user?.addresses || []
       });
     }
+  } catch (error) {
+    console.error('Error fetching addresses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch addresses',
+      error: error.message
+    });
+  }
+});
+
+// Add user address
+app.post('/api/users/addresses', authenticateToken, async (req, res) => {
+  console.log('✅ Add user address route accessed');
+  
+  try {
+    const addressData = req.body;
     
+    if (isDatabaseConnected()) {
+      const user = await User.findById(req.user._id);
+      user.addresses.push(addressData);
+      await user.save();
+      
+      res.status(201).json({
+        success: true,
+        message: 'Address added successfully',
+        address: user.addresses[user.addresses.length - 1]
+      });
+    } else {
+      const userIndex = inMemoryUsers.findIndex(u => u._id === req.user._id);
+      if (userIndex !== -1) {
+        if (!inMemoryUsers[userIndex].addresses) {
+          inMemoryUsers[userIndex].addresses = [];
+        }
+        const newAddress = {
+          _id: Date.now().toString(),
+          ...addressData
+        };
+        inMemoryUsers[userIndex].addresses.push(newAddress);
+        
+        res.status(201).json({
+          success: true,
+          message: 'Address added successfully',
+          address: newAddress
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error adding address:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add address',
+      error: error.message
+    });
+  }
+});
+
+// ============================================================================
+// PRODUCTS ROUTES
+// ============================================================================
+
+// Get shop products (only for authenticated shop owner) - MUST BE BEFORE /api/products/:id
+app.get('/api/products/shop', authenticateToken, isShopOwner, async (req, res) => {
+  console.log('✅ Get shop products route accessed');
+  
+  try {
     let products = [];
     let shopName = '';
     
@@ -782,25 +1093,23 @@ app.get('/api/products/shop', authenticateToken, async (req, res) => {
       
       products = shop.products;
       shopName = shop.shopName;
-      console.log(`📦 Found ${products.length} products in ${shopName} for user ${req.user.email}`);
       
     } else {
-      // Find user's shop in memory
       const userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
       if (userShop) {
         products = userShop.products || [];
         shopName = userShop.shopName;
       }
-      console.log(`📦 Found ${products.length} products in memory shop for user ${req.user.email}`);
     }
+    
+    console.log(`📦 Found ${products.length} products in ${shopName}`);
     
     res.json({
       success: true,
       products: products,
       total: products.length,
       shopName: shopName,
-      owner: `${req.user.firstName} ${req.user.lastName}`,
-      source: isDatabaseConnected() ? 'database (user\'s shop)' : 'memory'
+      owner: `${req.user.firstName} ${req.user.lastName}`
     });
     
   } catch (error) {
@@ -813,21 +1122,256 @@ app.get('/api/products/shop', authenticateToken, async (req, res) => {
   }
 });
 
-// Create new product (SAVES TO AUTHENTICATED USER'S SHOP)
-app.post('/api/products', authenticateToken, async (req, res) => {
-  console.log('✅ Create product route accessed');
-  console.log('User:', req.user.email, 'Type:', req.user.userType);
-  console.log('Product data:', req.body);
+// Alternative route for frontend that expects /api/products/shop/products
+app.get('/api/products/shop/products', authenticateToken, isShopOwner, async (req, res) => {
+  console.log('✅ Get shop products (nested route) accessed');
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
+    let products = [];
+    let shopName = '';
+    
+    if (isDatabaseConnected()) {
+      const shop = await Shop.findOne({ ownerId: req.user._id });
+      
+      if (!shop) {
+        return res.status(404).json({
+          success: false,
+          message: 'Shop not found for this user'
+        });
+      }
+      
+      products = shop.products;
+      shopName = shop.shopName;
+      
+    } else {
+      const userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
+      if (userShop) {
+        products = userShop.products || [];
+        shopName = userShop.shopName;
+      }
+    }
+    
+    console.log(`📦 Found ${products.length} products in ${shopName} (nested route)`);
+    
+    res.json({
+      success: true,
+      products: products,
+      total: products.length,
+      shopName: shopName,
+      owner: `${req.user.firstName} ${req.user.lastName}`
+    });
+    
+  } catch (error) {
+    console.error('Error fetching shop products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch shop products',
+      error: error.message
+    });
+  }
+});
+
+// Get all products (from all shops)
+app.get('/api/products', async (req, res) => {
+  console.log('✅ Get all products route accessed');
+  
+  try {
+    const { search, categories, minPrice, maxPrice, rating, sort, page = 1, limit = 12 } = req.query;
+    let allProducts = [];
+    
+    if (isDatabaseConnected()) {
+      // Get products from all shops in database
+      const shops = await Shop.find().populate('ownerId', 'firstName lastName email');
+      
+      shops.forEach(shop => {
+        shop.products.forEach(product => {
+          if (product.isActive) {
+            allProducts.push({
+              ...product.toObject(),
+              productId: product._id,
+              shopId: shop._id,
+              shopName: shop.shopName,
+              ownerName: shop.ownerId ? 
+                `${shop.ownerId.firstName} ${shop.ownerId.lastName}` : 
+                'Unknown Owner'
+            });
+          }
+        });
+      });
+      
+    } else {
+      // Fallback to mock data from memory
+      inMemoryShops.forEach(shop => {
+        const owner = inMemoryUsers.find(u => u._id === shop.ownerId);
+        shop.products?.forEach(product => {
+          if (product.isActive) {
+            allProducts.push({
+              ...product,
+              productId: product._id,
+              shopId: shop._id,
+              shopName: shop.shopName,
+              ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown Owner'
+            });
+          }
+        });
       });
     }
     
+    // Apply filters
+    if (search) {
+      const searchTerm = search.toLowerCase();
+      allProducts = allProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.description.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    if (categories) {
+      const categoryList = categories.split(',');
+      allProducts = allProducts.filter(product => 
+        categoryList.includes(product.category)
+      );
+    }
+    
+    if (minPrice) {
+      allProducts = allProducts.filter(product => 
+        (product.salePrice || product.price) >= parseFloat(minPrice)
+      );
+    }
+    
+    if (maxPrice) {
+      allProducts = allProducts.filter(product => 
+        (product.salePrice || product.price) <= parseFloat(maxPrice)
+      );
+    }
+    
+    if (rating) {
+      allProducts = allProducts.filter(product => 
+        product.rating >= parseFloat(rating)
+      );
+    }
+    
+    // Apply sorting
+    if (sort) {
+      switch (sort) {
+        case 'price_asc':
+          allProducts.sort((a, b) => (a.salePrice || a.price) - (b.salePrice || b.price));
+          break;
+        case 'price_desc':
+          allProducts.sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
+          break;
+        case 'rating_desc':
+          allProducts.sort((a, b) => b.rating - a.rating);
+          break;
+        case 'newest':
+        default:
+          allProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          break;
+      }
+    }
+    
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedProducts = allProducts.slice(startIndex, endIndex);
+    
+    console.log(`📦 Found ${allProducts.length} products, returning ${paginatedProducts.length}`);
+    
+    res.json({
+      success: true,
+      products: paginatedProducts,
+      total: allProducts.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(allProducts.length / limit)
+    });
+    
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch products',
+      error: error.message
+    });
+  }
+});
+
+// Get single product by ID (MUST BE AFTER /api/products/shop to avoid conflicts)
+app.get('/api/products/shop/:id', async (req, res) => {
+  console.log('✅ Get product by ID route accessed');
+  const productId = req.params.id;
+  console.log('📦 Product ID received:', productId);
+
+  try {
+    const productId = req.params.id;
+    let foundProduct = null;
+    
+    if (isDatabaseConnected()) {
+      const shops = await Shop.find().populate('ownerId', 'firstName lastName email');
+      console.log('🛒 Shops found:', shops.length);
+      for (const shop of shops) {
+        console.log('🔍 Checking shop:', shop.shopName);
+  console.log('📦 Products:', shop.products);
+  const product = shop.products.id(productId);
+        
+        if (product) {
+          console.log('✅ Product found:', product.name);
+          foundProduct = {
+            ...product.toObject(),
+            productId: product._id,
+            shopId: shop._id,
+            shopName: shop.shopName,
+            ownerName: shop.ownerId ? 
+              `${shop.ownerId.firstName} ${shop.ownerId.lastName}` : 
+              'Unknown Owner'
+          };
+          break;
+        }
+      }
+    } else {
+      for (const shop of inMemoryShops) {
+        const product = shop.products?.find(p => p._id === productId);
+        if (product) {
+          const owner = inMemoryUsers.find(u => u._id === shop.ownerId);
+          foundProduct = {
+            ...product,
+            productId: product._id,
+            shopId: shop._id,
+            shopName: shop.shopName,
+            ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown Owner'
+          };
+          break;
+        }
+      }
+    }
+    
+    if (!foundProduct) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      product: foundProduct
+    });
+    
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch product',
+      error: error.message
+    });
+  }
+});
+
+// Create new product (with image upload)
+app.post('/api/products', authenticateToken, isShopOwner, upload.array('images', 5), async (req, res) => {
+  console.log('✅ Create product route accessed');
+  
+  try {
     // Validate required fields
     if (!req.body.name || !req.body.price || !req.body.category) {
       return res.status(400).json({
@@ -836,18 +1380,24 @@ app.post('/api/products', authenticateToken, async (req, res) => {
       });
     }
     
+    // Process uploaded images
+    const imageUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    
     const productData = {
       name: req.body.name,
       description: req.body.description || '',
       price: parseFloat(req.body.price),
+      salePrice: req.body.salePrice ? parseFloat(req.body.salePrice) : undefined,
       category: req.body.category,
+      subCategory: req.body.subCategory || '',
       inventory: {
         quantity: parseInt(req.body.quantity) || 0,
         sku: req.body.sku || `SKU-${Date.now()}`
       },
-      images: req.body.images || [],
-      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
-      isPromoted: req.body.isPromoted || false,
+      images: imageUrls,
+      attributes: req.body.attributes ? JSON.parse(req.body.attributes) : {},
+      isActive: req.body.isActive !== undefined ? req.body.isActive === 'true' : true,
+      isPromoted: req.body.isPromoted === 'true' || false,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -856,7 +1406,6 @@ app.post('/api/products', authenticateToken, async (req, res) => {
     let shopName = '';
     
     if (isDatabaseConnected()) {
-      // Get or create user's shop
       const shop = await getOrCreateUserShop(req.user._id, req.user);
       
       if (!shop) {
@@ -866,18 +1415,13 @@ app.post('/api/products', authenticateToken, async (req, res) => {
         });
       }
       
-      // Add product to user's shop
       shop.products.push(productData);
       const updatedShop = await shop.save();
       
-      // Get the newly added product (last one in the array)
       savedProduct = updatedShop.products[updatedShop.products.length - 1];
       shopName = shop.shopName;
       
-      console.log(`🏪 Product saved to ${shopName} (database) for user ${req.user.email}:`, savedProduct._id);
-      
     } else {
-      // Save to memory - find or create user's shop
       let userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
       
       if (!userShop) {
@@ -898,16 +1442,15 @@ app.post('/api/products', authenticateToken, async (req, res) => {
       
       userShop.products.push(savedProduct);
       shopName = userShop.shopName;
-      console.log(`🏪 Product saved to ${shopName} (memory) for user ${req.user.email}:`, savedProduct._id);
     }
+    
+    console.log(`🏪 Product created in ${shopName}:`, savedProduct._id);
     
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
       product: savedProduct,
-      shopName: shopName,
-      owner: `${req.user.firstName} ${req.user.lastName}`,
-      savedTo: isDatabaseConnected() ? 'database (user\'s shop)' : 'memory'
+      shopName: shopName
     });
     
   } catch (error) {
@@ -920,25 +1463,17 @@ app.post('/api/products', authenticateToken, async (req, res) => {
   }
 });
 
-// Update product (IN AUTHENTICATED USER'S SHOP ONLY)
-app.put('/api/products/:id', authenticateToken, async (req, res) => {
+// Update product
+app.put('/api/products/:id', authenticateToken, isShopOwner, upload.array('images', 5), async (req, res) => {
   console.log('✅ Update product route accessed');
-  console.log('User:', req.user.email, 'Product ID:', req.params.id);
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
-      });
-    }
+    const productId = req.params.id;
     
     if (isDatabaseConnected()) {
-      // Find user's shop and the specific product
       const shop = await Shop.findOne({ 
         ownerId: req.user._id,
-        'products._id': req.params.id 
+        'products._id': productId 
       });
       
       if (!shop) {
@@ -948,39 +1483,41 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
         });
       }
       
-      const product = shop.products.id(req.params.id);
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: 'Product not found'
-        });
-      }
+      const product = shop.products.id(productId);
       
       // Update product fields
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
       product.price = req.body.price ? parseFloat(req.body.price) : product.price;
+      product.salePrice = req.body.salePrice ? parseFloat(req.body.salePrice) : product.salePrice;
       product.category = req.body.category || product.category;
+      product.subCategory = req.body.subCategory || product.subCategory;
       product.inventory.quantity = req.body.quantity ? parseInt(req.body.quantity) : product.inventory.quantity;
       product.inventory.sku = req.body.sku || product.inventory.sku;
-      product.isActive = req.body.isActive !== undefined ? req.body.isActive : product.isActive;
-      product.isPromoted = req.body.isPromoted !== undefined ? req.body.isPromoted : product.isPromoted;
+      product.isActive = req.body.isActive !== undefined ? req.body.isActive === 'true' : product.isActive;
+      product.isPromoted = req.body.isPromoted !== undefined ? req.body.isPromoted === 'true' : product.isPromoted;
       product.updatedAt = new Date();
       
-      await shop.save();
+      // Process new images if uploaded
+      if (req.files && req.files.length > 0) {
+        const newImageUrls = req.files.map(file => `/uploads/${file.filename}`);
+        product.images = newImageUrls;
+      }
       
-      console.log(`🏪 Product updated in ${shop.shopName} for user ${req.user.email}:`, product._id);
+      // Update attributes if provided
+      if (req.body.attributes) {
+        product.attributes = JSON.parse(req.body.attributes);
+      }
+      
+      await shop.save();
       
       res.json({
         success: true,
         message: 'Product updated successfully',
-        product: product,
-        shopName: shop.shopName,
-        updatedIn: 'database (user\'s shop)'
+        product: product
       });
       
     } else {
-      // Update in memory - only in user's shop
       const userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
       
       if (!userShop) {
@@ -990,7 +1527,7 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
         });
       }
       
-      const productIndex = userShop.products.findIndex(p => p._id === req.params.id);
+      const productIndex = userShop.products.findIndex(p => p._id === productId);
       if (productIndex === -1) {
         return res.status(404).json({
           success: false,
@@ -998,20 +1535,24 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
         });
       }
       
+      // Process new images if uploaded
+      let imageUrls = userShop.products[productIndex].images;
+      if (req.files && req.files.length > 0) {
+        imageUrls = req.files.map(file => `/uploads/${file.filename}`);
+      }
+      
       userShop.products[productIndex] = {
         ...userShop.products[productIndex],
         ...req.body,
+        images: imageUrls,
+        attributes: req.body.attributes ? JSON.parse(req.body.attributes) : userShop.products[productIndex].attributes,
         updatedAt: new Date().toISOString()
       };
-      
-      console.log(`🏪 Product updated in ${userShop.shopName} for user ${req.user.email}:`, req.params.id);
       
       res.json({
         success: true,
         message: 'Product updated successfully',
-        product: userShop.products[productIndex],
-        shopName: userShop.shopName,
-        updatedIn: 'memory (user\'s shop)'
+        product: userShop.products[productIndex]
       });
     }
     
@@ -1025,25 +1566,17 @@ app.put('/api/products/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Delete product (FROM AUTHENTICATED USER'S SHOP ONLY)
-app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+// Delete product
+app.delete('/api/products/:id', authenticateToken, isShopOwner, async (req, res) => {
   console.log('✅ Delete product route accessed');
-  console.log('User:', req.user.email, 'Product ID:', req.params.id);
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
-      });
-    }
+    const productId = req.params.id;
     
     if (isDatabaseConnected()) {
-      // Find user's shop and remove the specific product
       const shop = await Shop.findOne({ 
         ownerId: req.user._id,
-        'products._id': req.params.id 
+        'products._id': productId 
       });
       
       if (!shop) {
@@ -1053,13 +1586,10 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
         });
       }
       
-      shop.products.id(req.params.id).remove();
+      shop.products.id(productId).remove();
       await shop.save();
       
-      console.log(`🗑️ Product deleted from ${shop.shopName} for user ${req.user.email}:`, req.params.id);
-      
     } else {
-      // Delete from memory - only from user's shop
       const userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
       
       if (!userShop) {
@@ -1069,7 +1599,7 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
         });
       }
       
-      const productIndex = userShop.products.findIndex(p => p._id === req.params.id);
+      const productIndex = userShop.products.findIndex(p => p._id === productId);
       if (productIndex === -1) {
         return res.status(404).json({
           success: false,
@@ -1078,14 +1608,12 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
       }
       
       userShop.products.splice(productIndex, 1);
-      console.log(`🗑️ Product deleted from ${userShop.shopName} for user ${req.user.email}:`, req.params.id);
     }
     
     res.json({
       success: true,
       message: 'Product deleted successfully',
-      productId: req.params.id,
-      deletedFrom: isDatabaseConnected() ? 'database (user\'s shop)' : 'memory (user\'s shop)'
+      productId: productId
     });
     
   } catch (error) {
@@ -1098,24 +1626,18 @@ app.delete('/api/products/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Update product status (IN AUTHENTICATED USER'S SHOP ONLY)
-app.patch('/api/products/:id/status', authenticateToken, async (req, res) => {
+// Update product status
+app.patch('/api/products/:id/status', authenticateToken, isShopOwner, async (req, res) => {
   console.log('✅ Update product status route accessed');
-  console.log('User:', req.user.email, 'Product ID:', req.params.id, 'New status:', req.body.isActive);
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
-      });
-    }
+    const productId = req.params.id;
+    const { isActive } = req.body;
     
     if (isDatabaseConnected()) {
       const shop = await Shop.findOne({ 
         ownerId: req.user._id,
-        'products._id': req.params.id 
+        'products._id': productId 
       });
       
       if (!shop) {
@@ -1125,16 +1647,13 @@ app.patch('/api/products/:id/status', authenticateToken, async (req, res) => {
         });
       }
       
-      const product = shop.products.id(req.params.id);
-      product.isActive = req.body.isActive;
+      const product = shop.products.id(productId);
+      product.isActive = isActive;
       product.updatedAt = new Date();
       
       await shop.save();
       
-      console.log(`🔄 Product status updated in ${shop.shopName} for user ${req.user.email}:`, req.params.id);
-      
     } else {
-      // Update in memory - only in user's shop
       const userShop = inMemoryShops.find(shop => shop.ownerId === req.user._id);
       
       if (!userShop) {
@@ -1144,7 +1663,7 @@ app.patch('/api/products/:id/status', authenticateToken, async (req, res) => {
         });
       }
       
-      const product = userShop.products.find(p => p._id === req.params.id);
+      const product = userShop.products.find(p => p._id === productId);
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -1152,16 +1671,14 @@ app.patch('/api/products/:id/status', authenticateToken, async (req, res) => {
         });
       }
       
-      product.isActive = req.body.isActive;
-      console.log(`🔄 Product status updated in ${userShop.shopName} for user ${req.user.email}:`, req.params.id);
+      product.isActive = isActive;
     }
     
     res.json({
       success: true,
       message: 'Product status updated successfully',
-      productId: req.params.id,
-      isActive: req.body.isActive,
-      updatedIn: isDatabaseConnected() ? 'database (user\'s shop)' : 'memory (user\'s shop)'
+      productId: productId,
+      isActive: isActive
     });
     
   } catch (error) {
@@ -1174,20 +1691,15 @@ app.patch('/api/products/:id/status', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user's shop info
-app.get('/api/shop/info', authenticateToken, async (req, res) => {
+// ============================================================================
+// SHOP ROUTES
+// ============================================================================
+
+// Get shop info
+app.get('/api/shop/info', authenticateToken, isShopOwner, async (req, res) => {
   console.log('✅ Get shop info route accessed');
-  console.log('User:', req.user.email);
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
-      });
-    }
-    
     let shop;
     
     if (isDatabaseConnected()) {
@@ -1219,6 +1731,7 @@ app.get('/api/shop/info', authenticateToken, async (req, res) => {
         logo: shop.logo,
         contact: shop.contact,
         address: shop.address,
+        businessInfo: shop.businessInfo,
         isVerified: shop.isVerified,
         rating: shop.rating,
         productCount: shop.products?.length || 0,
@@ -1227,8 +1740,7 @@ app.get('/api/shop/info', authenticateToken, async (req, res) => {
           name: `${req.user.firstName} ${req.user.lastName}`,
           email: req.user.email
         }
-      },
-      source: isDatabaseConnected() ? 'database' : 'memory'
+      }
     });
     
   } catch (error) {
@@ -1242,19 +1754,10 @@ app.get('/api/shop/info', authenticateToken, async (req, res) => {
 });
 
 // Update shop info
-app.put('/api/shop/info', authenticateToken, async (req, res) => {
+app.put('/api/shop/info', authenticateToken, isShopOwner, upload.single('logo'), async (req, res) => {
   console.log('✅ Update shop info route accessed');
-  console.log('User:', req.user.email);
   
   try {
-    // Check if user is shop owner
-    if (req.user.userType !== 'shop_owner') {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. Shop owner role required.'
-      });
-    }
-    
     if (isDatabaseConnected()) {
       const shop = await Shop.findOne({ ownerId: req.user._id });
       
@@ -1268,20 +1771,17 @@ app.put('/api/shop/info', authenticateToken, async (req, res) => {
       // Update shop fields
       if (req.body.shopName) shop.shopName = req.body.shopName;
       if (req.body.description) shop.description = req.body.description;
-      if (req.body.logo) shop.logo = req.body.logo;
-      if (req.body.contact) shop.contact = { ...shop.contact, ...req.body.contact };
-      if (req.body.address) shop.address = { ...shop.address, ...req.body.address };
-      if (req.body.businessInfo) shop.businessInfo = { ...shop.businessInfo, ...req.body.businessInfo };
+      if (req.file) shop.logo = `/uploads/${req.file.filename}`;
+      if (req.body.contact) shop.contact = { ...shop.contact, ...JSON.parse(req.body.contact) };
+      if (req.body.address) shop.address = { ...shop.address, ...JSON.parse(req.body.address) };
+      if (req.body.businessInfo) shop.businessInfo = { ...shop.businessInfo, ...JSON.parse(req.body.businessInfo) };
       
       await shop.save();
-      
-      console.log(`🏪 Shop info updated for user ${req.user.email}: ${shop.shopName}`);
       
       res.json({
         success: true,
         message: 'Shop information updated successfully',
-        shop: shop,
-        updatedIn: 'database'
+        shop: shop
       });
       
     } else {
@@ -1295,13 +1795,18 @@ app.put('/api/shop/info', authenticateToken, async (req, res) => {
       }
       
       // Update shop fields in memory
-      Object.assign(userShop, req.body);
+      Object.assign(userShop, {
+        ...req.body,
+        logo: req.file ? `/uploads/${req.file.filename}` : userShop.logo,
+        contact: req.body.contact ? JSON.parse(req.body.contact) : userShop.contact,
+        address: req.body.address ? JSON.parse(req.body.address) : userShop.address,
+        businessInfo: req.body.businessInfo ? JSON.parse(req.body.businessInfo) : userShop.businessInfo
+      });
       
       res.json({
         success: true,
         message: 'Shop information updated successfully',
-        shop: userShop,
-        updatedIn: 'memory'
+        shop: userShop
       });
     }
     
@@ -1341,16 +1846,13 @@ app.get('/api/categories', async (req, res) => {
         categories = await Category.insertMany(defaultCategories);
         console.log('📚 Created default categories in database');
       }
-      console.log(`📚 Found ${categories.length} categories in database`);
     } else {
       categories = inMemoryCategories;
-      console.log(`📚 Using ${categories.length} categories from memory`);
     }
 
     res.json({
       success: true,
-      categories: categories,
-      source: isDatabaseConnected() ? 'database' : 'memory'
+      categories: categories
     });
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -1363,106 +1865,551 @@ app.get('/api/categories', async (req, res) => {
 });
 
 // ============================================================================
-// OTHER MOCK ROUTES (BASIC IMPLEMENTATIONS)
+// CART ROUTES
 // ============================================================================
 
-// User profile route
-app.get('/api/users/profile', authenticateToken, (req, res) => {
-  console.log('✅ User profile route accessed');
-  res.json({
-    success: true,
-    message: 'User profile endpoint - implementation pending',
-    user: {
-      id: req.user._id,
-      email: req.user.email,
-      firstName: req.user.firstName,
-      lastName: req.user.lastName,
-      userType: req.user.userType
+// Get user cart
+app.get('/api/cart', authenticateToken, async (req, res) => {
+  console.log('✅ Get cart route accessed');
+  
+  try {
+    let cart;
+    
+    if (isDatabaseConnected()) {
+      cart = await Cart.findOne({ userId: req.user._id });
+      
+      if (!cart) {
+        cart = new Cart({
+          userId: req.user._id,
+          items: [],
+          totalAmount: 0
+        });
+        await cart.save();
+      }
+    } else {
+      cart = inMemoryCarts.find(c => c.userId === req.user._id);
+      
+      if (!cart) {
+        cart = {
+          _id: Date.now().toString(),
+          userId: req.user._id,
+          items: [],
+          totalAmount: 0
+        };
+        inMemoryCarts.push(cart);
+      }
     }
-  });
+    
+    res.json({
+      success: true,
+      items: cart.items,
+      totalAmount: cart.totalAmount,
+      totalItems: cart.items.reduce((total, item) => total + item.quantity, 0)
+    });
+    
+  } catch (error) {
+    console.error('Error fetching cart:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch cart',
+      error: error.message
+    });
+  }
 });
 
-app.get('/api/users/addresses', authenticateToken, (req, res) => {
-  console.log('✅ User addresses route accessed');
-  res.json({
-    success: true,
-    message: 'User addresses endpoint - implementation pending',
-    addresses: []
-  });
-});
-
-// Cart routes
-app.get('/api/cart', authenticateToken, (req, res) => {
-  console.log('✅ Cart route accessed');
-  res.json({
-    success: true,
-    items: [],
-    totalAmount: 0,
-    message: 'Cart endpoint - implementation pending'
-  });
-});
-
-app.post('/api/cart/items', authenticateToken, (req, res) => {
+// Add item to cart
+app.post('/api/cart/items', authenticateToken, async (req, res) => {
   console.log('✅ Add to cart route accessed');
-  res.json({
-    success: true,
-    message: 'Add to cart - implementation pending',
-    item: req.body
-  });
-});
-
-// Order routes
-app.get('/api/orders', authenticateToken, (req, res) => {
-  console.log('✅ Orders route accessed');
-  res.json({
-    success: true,
-    orders: [],
-    message: 'Orders endpoint - implementation pending'
-  });
-});
-
-app.post('/api/orders', authenticateToken, (req, res) => {
-  console.log('✅ Create order route accessed');
-  res.json({
-    success: true,
-    message: 'Create order - implementation pending',
-    order: {
-      _id: 'mock_order_id',
-      orderNumber: 'ORD-001',
-      ...req.body
+  
+  try {
+    const { productId, shopId, quantity, attributes } = req.body;
+    
+    // Find the product to get current details
+    let productDetails = null;
+    
+    if (isDatabaseConnected()) {
+      const shop = await Shop.findById(shopId);
+      if (shop) {
+        productDetails = shop.products.id(productId);
+      }
+    } else {
+      const shop = inMemoryShops.find(s => s._id === shopId);
+      if (shop) {
+        productDetails = shop.products.find(p => p._id === productId);
+      }
     }
-  });
+    
+    if (!productDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    const itemData = {
+      productId,
+      shopId,
+      name: productDetails.name,
+      price: productDetails.salePrice || productDetails.price,
+      image: productDetails.images[0] || '',
+      quantity: parseInt(quantity),
+      attributes: attributes || {}
+    };
+    
+    if (isDatabaseConnected()) {
+      let cart = await Cart.findOne({ userId: req.user._id });
+      
+      if (!cart) {
+        cart = new Cart({
+          userId: req.user._id,
+          items: [],
+          totalAmount: 0
+        });
+      }
+      
+      // Check if item already exists
+      const existingItemIndex = cart.items.findIndex(item => 
+        item.productId === productId && 
+        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+      );
+      
+      if (existingItemIndex >= 0) {
+        cart.items[existingItemIndex].quantity += parseInt(quantity);
+      } else {
+        cart.items.push(itemData);
+      }
+      
+      // Recalculate total
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      
+      await cart.save();
+      
+    } else {
+      let cart = inMemoryCarts.find(c => c.userId === req.user._id);
+      
+      if (!cart) {
+        cart = {
+          _id: Date.now().toString(),
+          userId: req.user._id,
+          items: [],
+          totalAmount: 0
+        };
+        inMemoryCarts.push(cart);
+      }
+      
+      // Check if item already exists
+      const existingItemIndex = cart.items.findIndex(item => 
+        item.productId === productId && 
+        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+      );
+      
+      if (existingItemIndex >= 0) {
+        cart.items[existingItemIndex].quantity += parseInt(quantity);
+      } else {
+        cart.items.push({
+          ...itemData,
+          _id: Date.now().toString()
+        });
+      }
+      
+      // Recalculate total
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Item added to cart successfully',
+      item: itemData
+    });
+    
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add item to cart',
+      error: error.message
+    });
+  }
 });
 
-// Payment routes
-app.post('/api/payments/create-intent', authenticateToken, (req, res) => {
-  console.log('✅ Payment intent route accessed');
-  res.json({
-    success: true,
-    message: 'Create payment intent - implementation pending',
-    clientSecret: 'mock_client_secret'
-  });
+// Update cart item quantity
+app.put('/api/cart/items/:productId', authenticateToken, async (req, res) => {
+  console.log('✅ Update cart item route accessed');
+  
+  try {
+    const { productId } = req.params;
+    const { quantity, attributes } = req.body;
+    
+    if (isDatabaseConnected()) {
+      const cart = await Cart.findOne({ userId: req.user._id });
+      
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+      
+      const itemIndex = cart.items.findIndex(item => 
+        item.productId === productId && 
+        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+      );
+      
+      if (itemIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Item not found in cart'
+        });
+      }
+      
+      cart.items[itemIndex].quantity = parseInt(quantity);
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      
+      await cart.save();
+      
+    } else {
+      const cart = inMemoryCarts.find(c => c.userId === req.user._id);
+      
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+      
+      const itemIndex = cart.items.findIndex(item => 
+        item.productId === productId && 
+        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+      );
+      
+      if (itemIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Item not found in cart'
+        });
+      }
+      
+      cart.items[itemIndex].quantity = parseInt(quantity);
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Cart item updated successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error updating cart item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update cart item',
+      error: error.message
+    });
+  }
+});
+
+// Remove item from cart
+app.delete('/api/cart/items/:productId', authenticateToken, async (req, res) => {
+  console.log('✅ Remove cart item route accessed');
+  
+  try {
+    const { productId } = req.params;
+    const { attributes } = req.body;
+    
+    if (isDatabaseConnected()) {
+      const cart = await Cart.findOne({ userId: req.user._id });
+      
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+      
+      cart.items = cart.items.filter(item => 
+        !(item.productId === productId && 
+          JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
+      );
+      
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      
+      await cart.save();
+      
+    } else {
+      const cart = inMemoryCarts.find(c => c.userId === req.user._id);
+      
+      if (!cart) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cart not found'
+        });
+      }
+      
+      cart.items = cart.items.filter(item => 
+        !(item.productId === productId && 
+          JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
+      );
+      
+      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Item removed from cart successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error removing cart item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove cart item',
+      error: error.message
+    });
+  }
+});
+
+// Clear cart
+app.delete('/api/cart', authenticateToken, async (req, res) => {
+  console.log('✅ Clear cart route accessed');
+  
+  try {
+    if (isDatabaseConnected()) {
+      await Cart.findOneAndUpdate(
+        { userId: req.user._id },
+        { items: [], totalAmount: 0 },
+        { upsert: true }
+      );
+    } else {
+      const cartIndex = inMemoryCarts.findIndex(c => c.userId === req.user._id);
+      if (cartIndex !== -1) {
+        inMemoryCarts[cartIndex].items = [];
+        inMemoryCarts[cartIndex].totalAmount = 0;
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: 'Cart cleared successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear cart',
+      error: error.message
+    });
+  }
+});
+
+// ============================================================================
+// ORDER ROUTES
+// ============================================================================
+
+// Get user orders
+app.get('/api/orders', authenticateToken, async (req, res) => {
+  console.log('✅ Get orders route accessed');
+  
+  try {
+    let orders;
+    
+    if (isDatabaseConnected()) {
+      orders = await Order.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    } else {
+      orders = inMemoryOrders.filter(order => order.userId === req.user._id);
+      orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+    
+    res.json({
+      success: true,
+      orders: orders
+    });
+    
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch orders',
+      error: error.message
+    });
+  }
+});
+
+// Create new order
+app.post('/api/orders', authenticateToken, async (req, res) => {
+  console.log('✅ Create order route accessed');
+  
+  try {
+    const { addressId, items, payment } = req.body;
+    
+    // Get user's address
+    let shippingAddress;
+    if (isDatabaseConnected()) {
+      const user = await User.findById(req.user._id);
+      shippingAddress = user.addresses.id(addressId);
+    } else {
+      const user = inMemoryUsers.find(u => u._id === req.user._id);
+      shippingAddress = user?.addresses?.find(addr => addr._id === addressId);
+    }
+    
+    if (!shippingAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid shipping address'
+      });
+    }
+    
+    // Calculate totals
+    const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const shipping = 2.25; // Fixed shipping cost
+    const total = subtotal + shipping;
+    
+    const orderData = {
+      orderNumber: generateOrderNumber(),
+      userId: req.user._id,
+      items: items,
+      billing: {
+        address: shippingAddress,
+        subtotal: subtotal,
+        shipping: shipping,
+        discount: 0,
+        total: total
+      },
+      shipping: {
+        address: shippingAddress,
+        method: 'standard',
+        estimatedDelivery: {
+          from: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+          to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)    // 7 days from now
+        }
+      },
+      payment: {
+        method: payment.method,
+        status: 'pending'
+      }
+    };
+    
+    let savedOrder;
+    
+    if (isDatabaseConnected()) {
+      const newOrder = new Order(orderData);
+      savedOrder = await newOrder.save();
+      
+      // Clear user's cart
+      await Cart.findOneAndUpdate(
+        { userId: req.user._id },
+        { items: [], totalAmount: 0 }
+      );
+      
+    } else {
+      savedOrder = {
+        _id: Date.now().toString(),
+        ...orderData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      inMemoryOrders.push(savedOrder);
+      
+      // Clear user's cart
+      const cartIndex = inMemoryCarts.findIndex(c => c.userId === req.user._id);
+      if (cartIndex !== -1) {
+        inMemoryCarts[cartIndex].items = [];
+        inMemoryCarts[cartIndex].totalAmount = 0;
+      }
+    }
+    
+    console.log(`📦 Order created: ${savedOrder.orderNumber}`);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Order created successfully',
+      order: savedOrder
+    });
+    
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create order',
+      error: error.message
+    });
+  }
+});
+
+// Get order by ID
+app.get('/api/orders/:id', authenticateToken, async (req, res) => {
+  console.log('✅ Get order by ID route accessed');
+  
+  try {
+    const orderId = req.params.id;
+    let order;
+    
+    if (isDatabaseConnected()) {
+      order = await Order.findOne({ _id: orderId, userId: req.user._id });
+    } else {
+      order = inMemoryOrders.find(o => o._id === orderId && o.userId === req.user._id);
+    }
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      order: order
+    });
+    
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch order',
+      error: error.message
+    });
+  }
 });
 
 // ============================================================================
 // ERROR HANDLING
 // ============================================================================
 
-// Global error handling middleware
-app.use((err, req, res, next) => {
-  console.error('❌ Error occurred:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.originalUrl,
-    method: req.method,
-    timestamp: new Date().toISOString()
+// 404 handler
+app.use('*', (req, res) => {
+  console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
   });
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('❌ Global Error Handler:', error);
+  
+  // Multer file upload errors
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File too large. Maximum size is 5MB.'
+    });
+  }
+  
+  if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+    return res.status(400).json({
+      success: false,
+      message: 'Too many files. Maximum 5 images allowed.'
+    });
+  }
   
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map(error => ({
-      field: error.path,
-      message: error.message
+  if (error.name === 'ValidationError') {
+    const errors = Object.values(error.errors).map(err => ({
+      field: err.path,
+      message: err.message
     }));
     return res.status(400).json({
       success: false,
@@ -1472,8 +2419,8 @@ app.use((err, req, res, next) => {
   }
   
   // Mongoose duplicate key error
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyValue)[0];
     return res.status(400).json({
       success: false,
       message: `${field} already exists`
@@ -1481,62 +2428,39 @@ app.use((err, req, res, next) => {
   }
   
   // JWT errors
-  if (err.name === 'JsonWebTokenError') {
+  if (error.name === 'JsonWebTokenError') {
     return res.status(401).json({
       success: false,
       message: 'Invalid token'
     });
   }
   
-  if (err.name === 'TokenExpiredError') {
+  if (error.name === 'TokenExpiredError') {
     return res.status(401).json({
       success: false,
       message: 'Token expired'
     });
   }
   
-  // Default error
-  const status = err.status || 500;
+  // Default error response
+  const status = error.status || 500;
   res.status(status).json({
     success: false,
-    message: status === 500 ? 'Internal Server Error' : err.message,
+    message: status === 500 ? 'Internal server error' : error.message,
     ...(process.env.NODE_ENV === 'development' && { 
-      stack: err.stack 
+      stack: error.stack 
     })
   });
 });
 
-// 404 handler - must be last
-app.use('*', (req, res) => {
-  console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.originalUrl} not found`,
-    suggestion: 'Please check the URL and try again',
-    availableEndpoints: {
-      root: 'GET /',
-      api: 'GET /api',
-      health: 'GET /api/health',
-      register: 'POST /api/auth/register (saves to users collection)',
-      login: 'POST /api/auth/login (authenticates from users collection)',
-      allProducts: 'GET /api/products (from all shops)',
-      shopProducts: 'GET /api/products/shop (authenticated user\'s shop only)',
-      createProduct: 'POST /api/products (saves to authenticated user\'s shop)',
-      updateProduct: 'PUT /api/products/:id (updates in authenticated user\'s shop)',
-      deleteProduct: 'DELETE /api/products/:id (deletes from authenticated user\'s shop)',
-      shopInfo: 'GET /api/shop/info (authenticated user\'s shop info)',
-      updateShop: 'PUT /api/shop/info (update authenticated user\'s shop)',
-      categories: 'GET /api/categories'
-    }
-  });
-});
-
 console.log('✅ All routes configured successfully');
-console.log('📊 Database collections: users, shops (one per owner), categories');
+console.log('📊 Database collections: users, shops, categories, carts, orders');
 console.log('🏪 Products are stored in individual shops collection');
 console.log('👤 User registration saves to users collection');
 console.log('🔐 Authentication required for shop-specific operations');
 console.log('🛡️ Shop owners can only manage their own products');
+console.log('📦 Complete cart and order management implemented');
+console.log('📁 File upload support for product images and shop logos');
 
 // Export the app (server.js will handle the listening)
 module.exports = app;

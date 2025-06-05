@@ -141,10 +141,11 @@ exports.socialLogin = async (req, res) => {
     }
     
     // Create token
+    // In your backend auth controller
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
     );
     
     res.json({

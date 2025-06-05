@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import './ProductCard.css'; 
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -11,20 +12,63 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
     addToCart(product, 1);
   };
+
+
+  // Add this line to construct the full image URL
+  const imageUrl = product.images && product.images[0] 
+    ? `http://localhost:5000${product.images[0]}` 
+    : '/images/placeholder.png';
+  
   
   return (
-    <div className="product-card">
+    <div className="product-card"
+      // style={{ 
+      //     width: '300px', 
+          
+      //   }}
+    >
       <Link to={`/products/${product._id}`} className="product-link">
-        <div className="product-image">
+        <div className="product-image"
+        style={{ 
+          width: '100%', 
+          height: '350px', 
+          overflow: 'hidden',
+          backgroundColor: '#f5f5f5'
+        }}>
           <img 
-            src={product.images[0] || '/images/placeholder.png'} 
-            alt={product.name} 
+            src={imageUrl}  /* Use imageUrl instead of product.images[0] */
+            alt={product.name}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block'
+            }}
           />
           {product.isPromoted && <span className="product-badge">Sale</span>}
         </div>
-        <div className="product-info">
-          <h3 className="product-name">{product.name}</h3>
-          <div className="product-price">
+        <div className="product-info"
+         style={{ 
+          width: '100%', 
+          height: '', 
+          overflow: 'hidden',
+          backgroundColor: '#f5f5f5'
+        }}>
+          <div 
+            style={{ 
+            fontSize: '24px',
+            overflow: 'hidden',
+            backgroundColor: '#f5f5f5',
+            color: 'black'
+        }}
+          >
+            {product.name}</div>
+          <div className="product-price"
+            style={{ 
+            fontSize: '18px',
+        }}
+          >
             {product.salePrice ? (
               <>
                 <span className="original-price">${product.price.toFixed(2)}</span>
@@ -34,18 +78,15 @@ const ProductCard = ({ product }) => {
               <span>${product.price.toFixed(2)}</span>
             )}
           </div>
-          <div className="product-rating">
-            {/* Display star rating here */}
-            <span className="rating-value">{product.rating}</span>
-          </div>
-        </div>
-      </Link>
-      <button 
-        className="add-to-cart-btn"
+          <button 
+        className='addcartbtn'
         onClick={handleAddToCart}
       >
         Add to Cart
       </button>
+        </div>
+      </Link>
+      
     </div>
   );
 };

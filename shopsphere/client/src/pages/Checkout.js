@@ -11,6 +11,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // ✅ Safe initialization with fallbacks
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -19,9 +20,10 @@ const Checkout = () => {
   const [processingOrder, setProcessingOrder] = useState(false);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   
+  // ✅ Initialize with empty object and safe user access
   const [newAddress, setNewAddress] = useState({
-    fullName: user ? `${user.firstName} ${user.lastName}` : '',
-    phoneNumber: user?.phoneNumber || '',
+    fullName: '',
+    phoneNumber: '',
     street: '',
     city: '',
     state: '',
@@ -30,6 +32,7 @@ const Checkout = () => {
     isDefault: false
   });
   
+  // ✅ Initialize with empty object
   const [cardInfo, setCardInfo] = useState({
     cardNumber: '',
     cardName: '',
@@ -37,13 +40,24 @@ const Checkout = () => {
     expiryYear: '',
     cvv: ''
   });
+
+  // ✅ Update newAddress when user loads
+  useEffect(() => {
+    if (user && user.firstName && user.lastName) {
+      setNewAddress(prev => ({
+        ...prev,
+        fullName: `${user.firstName} ${user.lastName}`,
+        phoneNumber: user.phoneNumber || ''
+      }));
+    }
+  }, [user]);
   
   // Calculate order summary
   const calculateSummary = () => {
-    const subtotal = cart.totalAmount;
+    const subtotal = cart?.totalAmount || 0;
     const shipping = subtotal > 50 ? 0 : 5.99;
-    const discount = 0; // Placeholder for discount logic
-    const tax = (subtotal * 0.07).toFixed(2); // Assuming 7% tax
+    const discount = 0;
+    const tax = (subtotal * 0.07).toFixed(2);
     const total = (parseFloat(subtotal) + parseFloat(shipping) - parseFloat(discount) + parseFloat(tax)).toFixed(2);
     
     return {
@@ -65,21 +79,21 @@ const Checkout = () => {
       
       if (cartLoading) return;
       
-      if (cart.items.length === 0) {
+      if (!cart || !cart.items || cart.items.length === 0) {
         navigate('/cart');
         return;
       }
       
       try {
         setLoading(true);
-        const response = await axios.get('/api/user/addresses');
-        setAddresses(response.data);
+        const response = await axios.get('http://localhost:5000/api/users/addresses');
+        setAddresses(response.data || []);
         
         // Select default address if available
-        const defaultAddress = response.data.find(addr => addr.isDefault);
+        const defaultAddress = (response.data || []).find(addr => addr.isDefault);
         if (defaultAddress) {
           setSelectedAddress(defaultAddress._id);
-        } else if (response.data.length > 0) {
+        } else if (response.data && response.data.length > 0) {
           setSelectedAddress(response.data[0]._id);
         }
         
@@ -93,18 +107,22 @@ const Checkout = () => {
     };
     
     fetchAddresses();
-  }, [user, navigate, cart.items.length, cartLoading]);
+  }, [user, navigate, cart, cartLoading]);
   
-  // Handle new address input change
+  // ✅ Handle new address input change with complete safety
   const handleAddressChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setNewAddress(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setNewAddress(prev => {
+      // Ensure prev is always an object
+      const safePrev = prev || {};
+      return {
+        ...safePrev,
+        [name]: type === 'checkbox' ? checked : value
+      };
+    });
   };
   
-  // Handle card info input change
+  // ✅ Handle card info input change with complete safety
   const handleCardInfoChange = (e) => {
     const { name, value } = e.target;
     
@@ -116,9 +134,21 @@ const Checkout = () => {
         .trim()
         .slice(0, 19);
       
-      setCardInfo(prev => ({ ...prev, [name]: formattedValue }));
+      setCardInfo(prev => {
+        const safePrev = prev || {};
+        return { 
+          ...safePrev,
+          [name]: formattedValue 
+        };
+      });
     } else {
-      setCardInfo(prev => ({ ...prev, [name]: value }));
+      setCardInfo(prev => {
+        const safePrev = prev || {};
+        return { 
+          ...safePrev,
+          [name]: value 
+        };
+      });
     }
   };
   
@@ -128,13 +158,16 @@ const Checkout = () => {
     
     try {
       setLoading(true);
-      const response = await axios.post('/api/user/addresses', newAddress);
+      const response = await axios.post('http://localhost:5000/api/users/addresses', newAddress);
       
-      setAddresses(prev => [...prev, response.data]);
+      setAddresses(prev => {
+        const safePrev = Array.isArray(prev) ? prev : [];
+        return [...safePrev, response.data];
+      });
       setSelectedAddress(response.data._id);
       setShowNewAddressForm(false);
       setNewAddress({
-        fullName: user ? `${user.firstName} ${user.lastName}` : '',
+        fullName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',
         phoneNumber: user?.phoneNumber || '',
         street: '',
         city: '',
@@ -196,11 +229,11 @@ const Checkout = () => {
       const orderData = {
         addressId: selectedAddress,
         newAddress: showNewAddressForm ? newAddress : null,
-        items: cart.items.map(item => ({
+        items: (cart?.items || []).map(item => ({
           productId: item.productId,
           quantity: item.quantity,
           price: item.price,
-          attributes: item.attributes
+          attributes: item.attributes || {}
         })),
         payment: {
           method: paymentMethod,
@@ -211,14 +244,16 @@ const Checkout = () => {
       };
       
       // Create order
-      const response = await axios.post('/api/orders', orderData);
+      const response = await axios.post('http://localhost:5000/api/orders', orderData);
       
       // Process payment (in a real app, this would typically involve a payment gateway)
       // Here we're just simulating a successful payment
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Clear cart after successful order
-      await clearCart();
+      if (clearCart) {
+        await clearCart();
+      }
       
       // Navigate to order confirmation page
       navigate(`/order-confirmation/${response.data._id}`);
@@ -234,6 +269,20 @@ const Checkout = () => {
       <div className="loading-container">
         <div className="loading-spinner"></div>
         <p>Preparing checkout...</p>
+      </div>
+    );
+  }
+
+  // ✅ Handle missing cart gracefully
+  if (!cart || !cart.items || cart.items.length === 0) {
+    return (
+      <div className="checkout-page">
+        <div className="page-header">
+          <h1>Checkout</h1>
+        </div>
+        <div className="error-message">
+          Your cart is empty. <a href="/products">Continue Shopping</a>
+        </div>
       </div>
     );
   }
@@ -297,7 +346,7 @@ const Checkout = () => {
                         type="text"
                         id="fullName"
                         name="fullName"
-                        value={newAddress.fullName}
+                        value={newAddress.fullName || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -308,7 +357,7 @@ const Checkout = () => {
                         type="tel"
                         id="phoneNumber"
                         name="phoneNumber"
-                        value={newAddress.phoneNumber}
+                        value={newAddress.phoneNumber || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -321,7 +370,7 @@ const Checkout = () => {
                       type="text"
                       id="street"
                       name="street"
-                      value={newAddress.street}
+                      value={newAddress.street || ''}
                       onChange={handleAddressChange}
                       required
                     />
@@ -334,7 +383,7 @@ const Checkout = () => {
                         type="text"
                         id="city"
                         name="city"
-                        value={newAddress.city}
+                        value={newAddress.city || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -345,7 +394,7 @@ const Checkout = () => {
                         type="text"
                         id="state"
                         name="state"
-                        value={newAddress.state}
+                        value={newAddress.state || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -359,7 +408,7 @@ const Checkout = () => {
                         type="text"
                         id="zipCode"
                         name="zipCode"
-                        value={newAddress.zipCode}
+                        value={newAddress.zipCode || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -370,7 +419,7 @@ const Checkout = () => {
                         type="text"
                         id="country"
                         name="country"
-                        value={newAddress.country}
+                        value={newAddress.country || ''}
                         onChange={handleAddressChange}
                         required
                       />
@@ -382,7 +431,7 @@ const Checkout = () => {
                       type="checkbox"
                       id="isDefault"
                       name="isDefault"
-                      checked={newAddress.isDefault}
+                      checked={newAddress.isDefault || false}
                       onChange={handleAddressChange}
                     />
                     <label htmlFor="isDefault">Set as default shipping address</label>
@@ -472,7 +521,7 @@ const Checkout = () => {
                     id="cardNumber"
                     name="cardNumber"
                     placeholder="1234 5678 9012 3456"
-                    value={cardInfo.cardNumber}
+                    value={cardInfo.cardNumber || ''}
                     onChange={handleCardInfoChange}
                     maxLength="19"
                   />
@@ -485,7 +534,7 @@ const Checkout = () => {
                     id="cardName"
                     name="cardName"
                     placeholder="John Doe"
-                    value={cardInfo.cardName}
+                    value={cardInfo.cardName || ''}
                     onChange={handleCardInfoChange}
                   />
                 </div>
@@ -496,7 +545,7 @@ const Checkout = () => {
                     <div className="expiry-inputs">
                       <select
                         name="expiryMonth"
-                        value={cardInfo.expiryMonth}
+                        value={cardInfo.expiryMonth || ''}
                         onChange={handleCardInfoChange}
                       >
                         <option value="">MM</option>
@@ -511,7 +560,7 @@ const Checkout = () => {
                       </select>
                       <select
                         name="expiryYear"
-                        value={cardInfo.expiryYear}
+                        value={cardInfo.expiryYear || ''}
                         onChange={handleCardInfoChange}
                       >
                         <option value="">YY</option>
@@ -533,7 +582,7 @@ const Checkout = () => {
                       id="cvv"
                       name="cvv"
                       placeholder="123"
-                      value={cardInfo.cvv}
+                      value={cardInfo.cvv || ''}
                       onChange={handleCardInfoChange}
                       maxLength="4"
                     />
@@ -548,30 +597,30 @@ const Checkout = () => {
           <div className="order-summary">
             <div className="summary-header">
               <h2>Order Summary</h2>
-              <span className="item-count">{cart.items.length} items</span>
+              <span className="item-count">{cart?.items?.length || 0} items</span>
             </div>
             
             <div className="order-items">
-              {cart.items.map((item, index) => (
+              {(cart?.items || []).map((item, index) => (
                 <div key={index} className="order-item">
                   <div className="item-image">
                     <img 
                       src={item.image || '/images/placeholder-product.png'} 
-                      alt={item.name} 
+                      alt={item.name || 'Product'} 
                     />
-                    <span className="item-quantity">{item.quantity}</span>
+                    <span className="item-quantity">{item.quantity || 0}</span>
                   </div>
                   <div className="item-details">
-                    <p className="item-name">{item.name}</p>
+                    <p className="item-name">{item.name || 'Unknown Product'}</p>
                     {Object.keys(item.attributes || {}).length > 0 && (
                       <div className="item-attributes">
-                        {Object.entries(item.attributes).map(([key, value]) => (
+                        {Object.entries(item.attributes || {}).map(([key, value]) => (
                           <span key={key}>{key}: {value}</span>
                         ))}
                       </div>
                     )}
                   </div>
-                  <div className="item-price">${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="item-price">${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</div>
                 </div>
               ))}
             </div>

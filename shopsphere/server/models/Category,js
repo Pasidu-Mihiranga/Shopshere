@@ -1,0 +1,245 @@
+// server/models/Category.js
+const mongoose = require('mongoose');
+
+const categorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true
+  },
+  description: {
+    type: String,
+    trim: true
+  },
+  image: {
+    type: String // URL to category image
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Category',
+    default: null
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  sortOrder: {
+    type: Number,
+    default: 0
+  }
+}, {
+  timestamps: true
+});
+
+// Index for better performance
+categorySchema.index({ name: 1 });
+categorySchema.index({ isActive: 1, sortOrder: 1 });
+
+module.exports = mongoose.model('Category', categorySchema);
+
+// server/routes/categoryRoutes.js
+const express = require('express');
+const router = express.Router();
+const Category = require('../models/Category');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Get all active categories (public route)
+router.get('/', async (req, res) => {
+  try {
+    const categories = await Category.find({ isActive: true })
+      .sort({ sortOrder: 1, name: 1 });
+
+    res.json({
+      success: true,
+      categories: categories
+    });
+  } catch (error) {
+    console.error('❌ Error fetching categories:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch categories',
+      categories: []
+    });
+  }
+});
+
+// Get category by ID (public route)
+router.get('/:id', async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      category: category
+    });
+  } catch (error) {
+    console.error('❌ Error fetching category:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch category'
+    });
+  }
+});
+
+// Admin routes (require authentication and admin role)
+router.use(authMiddleware.authenticate);
+// Note: You'll need to implement admin middleware or adjust as needed
+
+// Create category (admin only)
+router.post('/', async (req, res) => {
+  try {
+    const { name, description, image, parentId, sortOrder } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        message: 'Category name is required'
+      });
+    }
+
+    const category = new Category({
+      name: name.trim(),
+      description: description ? description.trim() : '',
+      image: image || '',
+      parentId: parentId || null,
+      sortOrder: sortOrder || 0
+    });
+
+    await category.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Category created successfully',
+      category: category
+    });
+  } catch (error) {
+    console.error('❌ Error creating category:', error);
+    
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: 'Category with this name already exists'
+      });
+    }
+    
+    res.status(500).json({
+      message: 'Failed to create category'
+    });
+  }
+});
+
+// Update category (admin only)
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, description, image, parentId, sortOrder, isActive } = req.body;
+    
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: name ? name.trim() : undefined,
+        description: description ? description.trim() : undefined,
+        image: image,
+        parentId: parentId,
+        sortOrder: sortOrder,
+        isActive: isActive,
+        updatedAt: new Date()
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!category) {
+      return res.status(404).json({
+        message: 'Category not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Category updated successfully',
+      category: category
+    });
+  } catch (error) {
+    console.error('❌ Error updating category:', error);
+    res.status(500).json({
+      message: 'Failed to update category'
+    });
+  }
+});
+
+// Delete category (admin only)
+router.delete('/:id', async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    
+    if (!category) {
+      return res.status(404).json({
+        message: 'Category not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Category deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error deleting category:', error);
+    res.status(500).json({
+      message: 'Failed to delete category'
+    });
+  }
+});
+
+module.exports = router;
+
+// Script to create sample categories (run this once)
+// server/scripts/createSampleCategories.js
+const mongoose = require('mongoose');
+const Category = require('../models/Category');
+require('dotenv').config();
+
+const sampleCategories = [
+  { name: 'Electronics', description: 'Electronic devices and gadgets', sortOrder: 1 },
+  { name: 'Clothing', description: 'Fashion and apparel', sortOrder: 2 },
+  { name: 'Home & Garden', description: 'Home improvement and gardening', sortOrder: 3 },
+  { name: 'Sports & Outdoors', description: 'Sports equipment and outdoor gear', sortOrder: 4 },
+  { name: 'Books', description: 'Books and literature', sortOrder: 5 },
+  { name: 'Toys & Games', description: 'Toys and gaming', sortOrder: 6 },
+  { name: 'Health & Beauty', description: 'Health and beauty products', sortOrder: 7 },
+  { name: 'Automotive', description: 'Car parts and accessories', sortOrder: 8 },
+  { name: 'Food & Beverages', description: 'Food and drink items', sortOrder: 9 },
+  { name: 'Office Supplies', description: 'Office and business supplies', sortOrder: 10 }
+];
+
+async function createSampleCategories() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/shopsphere');
+    console.log('✅ Connected to MongoDB');
+
+    // Clear existing categories (optional)
+    await Category.deleteMany({});
+    console.log('🗑️ Cleared existing categories');
+
+    // Create sample categories
+    const categories = await Category.insertMany(sampleCategories);
+    console.log(`✅ Created ${categories.length} sample categories`);
+
+    categories.forEach(category => {
+      console.log(`- ${category.name} (ID: ${category._id})`);
+    });
+
+    await mongoose.connection.close();
+    console.log('✅ Database connection closed');
+  } catch (error) {
+    console.error('❌ Error creating sample categories:', error);
+    process.exit(1);
+  }
+}
+
+// Uncomment the line below and run this file to create sample categories
+// createSampleCategories();
