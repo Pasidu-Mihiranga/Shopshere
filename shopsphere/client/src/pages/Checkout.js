@@ -189,10 +189,10 @@ const Checkout = () => {
   // Place order
   const handlePlaceOrder = async () => {
     // Validate inputs
-    if (!selectedAddress && !showNewAddressForm) {
-      setError('Please select a shipping address');
-      return;
-    }
+    // if (!selectedAddress && !showNewAddressForm) {
+    //   setError('Please select a shipping address');
+    //   return;
+    // }
     
     if (showNewAddressForm) {
       if (!newAddress.fullName || !newAddress.street || !newAddress.city || 
@@ -227,8 +227,8 @@ const Checkout = () => {
       
       // Prepare order data
       const orderData = {
-        addressId: selectedAddress,
-        newAddress: showNewAddressForm ? newAddress : null,
+        // addressId: selectedAddress,
+        // newAddress: showNewAddressForm ? newAddress : null,
         items: (cart?.items || []).map(item => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -255,6 +255,10 @@ const Checkout = () => {
         await clearCart();
       }
       
+
+      //----------------------------------
+      //routing hadala na
+      //---------------------------------
       // Navigate to order confirmation page
       navigate(`/order-confirmation/${response.data._id}`);
     } catch (err) {

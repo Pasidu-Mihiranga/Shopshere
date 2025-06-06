@@ -13,7 +13,7 @@ const OrderConfirmation = () => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/orders/${orderId}`);
+        const response = await axios.get(`http://Localhost:5000/api/orders/${orderId}`);
         setOrder(response.data);
         setError(null);
       } catch (err) {
