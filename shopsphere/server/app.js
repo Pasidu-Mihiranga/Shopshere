@@ -1171,7 +1171,7 @@ app.get('/api/products/shop/products', authenticateToken, isShopOwner, async (re
   }
 });
 
-// Get all products (from all shops)
+// Get all products (from all shops) - CORRECTED VERSION
 app.get('/api/products', async (req, res) => {
   console.log('✅ Get all products route accessed');
   
@@ -1217,6 +1217,10 @@ app.get('/api/products', async (req, res) => {
       });
     }
     
+    console.log('🔍 Query params:', req.query);
+    console.log('📦 All products before filtering:', allProducts.length);
+    console.log('🏷️ Sample product categories:', allProducts.slice(0, 3).map(p => p.category));
+    
     // Apply filters
     if (search) {
       const searchTerm = search.toLowerCase();
@@ -1227,10 +1231,30 @@ app.get('/api/products', async (req, res) => {
     }
     
     if (categories) {
+      console.log('🔍 Categories filter received:', categories);
       const categoryList = categories.split(',');
-      allProducts = allProducts.filter(product => 
-        categoryList.includes(product.category)
-      );
+      console.log('🔍 Category list:', categoryList);
+      
+      if (categories) {
+  console.log('🔍 Categories filter received:', categories);
+  const categoryList = categories.split(',').map(id => id.trim());
+  console.log('🔍 Category ID list:', categoryList);
+  
+  // FIXED: Filter by IDs directly, don't convert to names
+  allProducts = allProducts.filter(product => {
+    const match = categoryList.includes(product.category.toString());
+    if (match) {
+      console.log(`✅ Product "${product.name}" matches category filter`);
+    } else {
+      console.log(`❌ Product "${product.name}" category "${product.category}" not in filter list`);
+    }
+    return match;
+  });
+  
+  console.log('📦 Products after category filtering:', allProducts.length);
+}
+      
+      console.log('📦 Products after category filtering:', allProducts.length);
     }
     
     if (minPrice) {
@@ -1586,7 +1610,7 @@ app.delete('/api/products/:id', authenticateToken, isShopOwner, async (req, res)
         });
       }
       
-      shop.products.id(productId).deleteOne();
+      shop.products.id(productId).deleteOne;
       await shop.save();
       
     } else {
@@ -1863,6 +1887,147 @@ app.get('/api/categories', async (req, res) => {
     });
   }
 });
+
+// Add this to your app.js after your existing product routes
+
+// Get products by category - Simple endpoint
+// Replace the entire endpoint in your app.js with this fixed version:
+
+// Get products by category - Fixed endpoint
+app.get('/api/products/category/:categoryId', async (req, res) => {
+  console.log('✅ Get products by category (simple) route accessed');
+  
+  try {
+    const categoryId = req.params.categoryId;
+    const { page = 1, limit = 12, sort = 'newest' } = req.query;
+    
+    console.log('🔍 Category ID:', categoryId);
+    
+    // Find category name for response (optional, just for display)
+    let categoryName = null;
+    
+    if (isDatabaseConnected()) {
+      try {
+        const category = await Category.findById(categoryId);
+        if (!category) {
+          return res.status(404).json({
+            success: false,
+            message: 'Category not found'
+          });
+        }
+        categoryName = category.name;
+        console.log('🔍 Category name found:', categoryName);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid category ID'
+        });
+      }
+    } else {
+      const category = inMemoryCategories.find(cat => cat._id === categoryId);
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
+      }
+      categoryName = category.name;
+    }
+    
+    // Get products for this category - FIXED: Compare IDs with IDs
+    let categoryProducts = [];
+    
+    if (isDatabaseConnected()) {
+      const shops = await Shop.find().populate('ownerId', 'firstName lastName email');
+      
+      shops.forEach(shop => {
+        shop.products.forEach(product => {
+          // 🔧 FIXED: Compare category ID with category ID (not name)
+          if (product.isActive && product.category.toString() === categoryId) {
+            console.log(`✅ Found matching product: "${product.name}" with category ID: ${product.category}`);
+            categoryProducts.push({
+              ...product.toObject(),
+              productId: product._id,
+              shopId: shop._id,
+              shopName: shop.shopName,
+              categoryName: categoryName, // Add category name for display
+              ownerName: shop.ownerId ? 
+                `${shop.ownerId.firstName} ${shop.ownerId.lastName}` : 
+                'Unknown Owner'
+            });
+          }
+        });
+      });
+    } else {
+      inMemoryShops.forEach(shop => {
+        const owner = inMemoryUsers.find(u => u._id === shop.ownerId);
+        shop.products?.forEach(product => {
+          // 🔧 FIXED: Compare category ID with category ID (not name)
+          if (product.isActive && product.category === categoryId) {
+            console.log(`✅ Found matching product: "${product.name}" with category ID: ${product.category}`);
+            categoryProducts.push({
+              ...product,
+              productId: product._id,
+              shopId: shop._id,
+              shopName: shop.shopName,
+              categoryName: categoryName, // Add category name for display
+              ownerName: owner ? `${owner.firstName} ${owner.lastName}` : 'Unknown Owner'
+            });
+          }
+        });
+      });
+    }
+    
+    // Apply sorting
+    switch (sort) {
+      case 'price_asc':
+        categoryProducts.sort((a, b) => (a.salePrice || a.price) - (b.salePrice || b.price));
+        break;
+      case 'price_desc':
+        categoryProducts.sort((a, b) => (b.salePrice || b.price) - (a.salePrice || a.price));
+        break;
+      case 'rating_desc':
+        categoryProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'newest':
+      default:
+        categoryProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+    }
+    
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedProducts = categoryProducts.slice(startIndex, endIndex);
+    
+    console.log(`📦 Found ${categoryProducts.length} products in category "${categoryName}"`);
+    
+    res.json({
+      success: true,
+      category: {
+        id: categoryId,
+        name: categoryName
+      },
+      products: paginatedProducts,
+      total: categoryProducts.length,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(categoryProducts.length / limit)
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching products by category:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch products by category',
+      error: error.message
+    });
+  }
+});
+
+// Also check if you have similar logic in the main products endpoint in app.js
+// Look for any other places that do: product.category === categoryName
+// And change them to: product.category.toString() === categoryId
 
 // ============================================================================
 // CART ROUTES

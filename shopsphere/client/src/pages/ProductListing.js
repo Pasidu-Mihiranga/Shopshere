@@ -1,5 +1,6 @@
+// src/pages/ProductListing.js
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from '../components/Product/ProductCard';
 import Pagination from '../components/Common/Pagination';
@@ -8,35 +9,35 @@ import './ProductListing.css';
 const ProductListing = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
+  const [searchParams] = useSearchParams();
   
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [currentPage, setCurrentPage] = useState(parseInt(queryParams.get('page')) || 1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [sortOption, setSortOption] = useState(queryParams.get('sort') || 'newest');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
+  const [error, setError] = useState('');
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   
   const productsPerPage = 12;
-  const port = process.env.PORT_ORIGIN;
-  
-  
-  
-  // Get all URL params for filters
-  const searchQuery = queryParams.get('search') || '';
-  const categoryParam = queryParams.get('categories') || '';
-  const minPrice = queryParams.get('minPrice') || '';
-  const maxPrice = queryParams.get('maxPrice') || '';
-  const ratingFilter = queryParams.get('rating') || '';
-  
+
+  // Function to fetch products by category (or all products with filters)
+  const fetchProductsByCategory = async (categoryId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/products?categories=${categoryId}`);
+      return response.data.products;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return [];
+    }
+  };
+
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        // FIXED: Added port 5000
         const response = await axios.get(`http://localhost:5000/api/categories`);
         setCategories(response.data);
       } catch (err) {
@@ -46,188 +47,175 @@ const ProductListing = () => {
     
     fetchCategories();
   }, []);
-  
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
+
+  // Main function to fetch products with all filters
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      // Build query params
+      const params = new URLSearchParams();
       
-      try {
-        // Create query string
-        const params = new URLSearchParams();
-        
-        // Pagination
-        params.set('page', currentPage.toString());
-        params.set('limit', productsPerPage.toString());
-        
-        // Sorting
-        params.set('sort', sortOption);
-        
-        // Search
-        if (searchQuery) {
-          params.set('search', searchQuery);
-        }
-        
-        // Category filter
-        if (categoryParam) {
-          params.set('categories', categoryParam);
-        }
-        
-        // Price range
-        if (minPrice) params.set('minPrice', minPrice);
-        if (maxPrice) params.set('maxPrice', maxPrice);
-        
-        // Rating filter
-        if (ratingFilter) params.set('rating', ratingFilter);
-        
-        // Fetch products
-        const response = await axios.get(`http://localhost:5000/api/products?${params.toString()}`);
-        
-        setProducts(response.data.products);
-        setTotalProducts(response.data.total);
-        setTotalPages(Math.ceil(response.data.total / productsPerPage));
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products. Please try again.');
-      } finally {
-        setLoading(false);
+      // Pagination
+      params.set('page', currentPage.toString());
+      params.set('limit', productsPerPage.toString());
+      
+      // Sorting
+      params.set('sort', sortBy);
+      
+      // Search term
+      const searchQuery = searchParams.get('search');
+      if (searchQuery) {
+        params.set('search', searchQuery);
       }
-    };
-    
+      
+      // Categories (this is the key part for category filtering)
+      const categories = searchParams.get('category') || searchParams.get('categories');
+      if (categories) {
+        params.set('categories', categories);
+        console.log('🔍 Filtering by category:', categories);
+      }
+      
+      // Price range
+      const minPrice = searchParams.get('minPrice');
+      const maxPrice = searchParams.get('maxPrice');
+      if (minPrice) params.set('minPrice', minPrice);
+      if (maxPrice) params.set('maxPrice', maxPrice);
+      
+      // Rating
+      const rating = searchParams.get('rating');
+      if (rating) params.set('rating', rating);
+      
+      console.log('🔍 Final API call:', `http://localhost:5000/api/products?${params.toString()}`);
+      console.log(`${params.toString()}`);
+      // FIXED: Corrected the API URL - removed typo and used correct endpoint
+      const response = await axios.get(`http://localhost:5000/api/products?${params.toString()}`);
+      
+      setProducts(response.data.products);
+      setTotalProducts(response.data.total);
+      setError('');
+    } catch (error) {
+      setError('Failed to fetch products');
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Re-fetch when URL parameters change
+  useEffect(() => {
     fetchProducts();
-  }, [currentPage, sortOption, searchQuery, categoryParam, minPrice, maxPrice, ratingFilter]);
-  
+  }, [location.search, currentPage, sortBy]);
+
+  // Update current page when URL changes
+  useEffect(() => {
+    const pageFromUrl = parseInt(searchParams.get('page')) || 1;
+    setCurrentPage(pageFromUrl);
+  }, [searchParams]);
+
   // Handle page change
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
     // Update URL with new page number
-    const params = new URLSearchParams(location.search);
-    params.set('page', page.toString());
-    navigate(`${location.pathname}?${params.toString()}`);
+    const newParams = new URLSearchParams(location.search);
+    newParams.set('page', pageNumber.toString());
+    navigate(`${location.pathname}?${newParams.toString()}`);
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Handle sort change
   const handleSortChange = (e) => {
-    const newSortOption = e.target.value;
-    setSortOption(newSortOption);
-    
+    const newSortBy = e.target.value;
+    setSortBy(newSortBy);
     // Update URL with new sort parameter
-    const params = new URLSearchParams(location.search);
-    params.set('sort', newSortOption);
-    
-    // Reset to page 1 when sorting changes
+    const newParams = new URLSearchParams(location.search);
+    newParams.set('sort', newSortBy);
     if (currentPage !== 1) {
-      params.set('page', '1');
+      newParams.set('page', '1');
       setCurrentPage(1);
     }
-    
-    navigate(`${location.pathname}?${params.toString()}`);
+    navigate(`${location.pathname}?${newParams.toString()}`);
   };
-  
+
   // Toggle view mode (grid/list)
   const toggleViewMode = (mode) => {
     setViewMode(mode);
   };
-  
-  // Toggle mobile filter sidebar
-  const toggleMobileFilter = () => {
-    setIsMobileFilterOpen(!isMobileFilterOpen);
-    
-    // Prevent body scrolling when filter is open
-    if (!isMobileFilterOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
+
+  // Helper function to get category name from id
+  const getCategoryName = (categories, categoryId) => {
+    if (!categories || !Array.isArray(categories) || !categoryId) {
+      return 'All';
     }
+    const category = categories.find(cat => cat._id === categoryId);
+    return category ? category.name : 'All';
   };
-  
+
+  const searchTerm = searchParams.get('search');
+  const categoryId = searchParams.get('category') || searchParams.get('categories');
+
   return (
     <div className="product-listing-page">
-      {/* Mobile filter button */}
-      <button 
-        className="mobile-filter-btn"
-        onClick={toggleMobileFilter}
-      >
-        <span>Filters</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-          <path fill="none" d="M0 0h24v24H0z"/>
-          <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" fill="currentColor"/>
-        </svg>
-      </button>
-      
       <div className="product-listing-container">
-        
-        
-        {/* Overlay for mobile filter */}
-        {isMobileFilterOpen && (
-          <div 
-            className="filter-overlay"
-            onClick={toggleMobileFilter}
-          />
-        )}
-        
-        {/* Product content */}
         <div className="product-content">
           {/* Page header */}
-          <div className="product-listing-header">
-            {searchQuery ? (
-              <h1>Search Results for "{searchQuery}"</h1>
-            ) : categoryParam ? (
-              <h1>{getCategoryName(categories, categoryParam)} Products</h1>
+          <div className="product-header">
+            {searchTerm ? (
+              <h1 className="search-results-title">
+                Search Results for "{searchTerm}"
+              </h1>
+            ) : categoryId ? (
+              <h1 className="category-results-title">
+                {getCategoryName(categories, categoryId)} Products
+              </h1>
             ) : (
               <h1>All Products</h1>
             )}
-          </div>
-          
-          {/* Sorting and display options */}
-          <div className="product-controls">
-            <div className="product-count">
-              <p>{totalProducts} Products</p>
-            </div>
             
-            <div className="product-sort">
-              <label htmlFor="sort-select">Sort by:</label>
-              <select 
-                id="sort-select"
-                value={sortOption}
-                onChange={handleSortChange}
-              >
-                <option value="newest">Newest Arrivals</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating_desc">Highest Rated</option>
-                <option value="popular">Most Popular</option>
-              </select>
-            </div>
-            
-            <div className="view-options">
-              <button 
-                className={`view-option ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => toggleViewMode('grid')}
-                aria-label="Grid view"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zM13 3h8v8h-8V3zm0 10h8v8h-8v-8z" fill="currentColor"/>
-                </svg>
-              </button>
-              <button 
-                className={`view-option ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => toggleViewMode('list')}
-                aria-label="List view"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" fill="currentColor"/>
-                </svg>
-              </button>
+            {/* Product controls */}
+            <div className="product-sorting">
+              <div className="results-count">
+                {totalProducts} {totalProducts === 1 ? 'Product' : 'Products'}
+              </div>
+              
+              <div className="sort-control">
+                <label>Sort by:</label>
+                <select value={sortBy} onChange={handleSortChange}>
+                  <option value="newest">Newest Arrivals</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="rating_desc">Highest Rated</option>
+                  <option value="popular">Most Popular</option>
+                </select>
+              </div>
+              
+              {/* View mode toggle */}
+              <div className="view-options">
+                <button 
+                  className={`view-option ${viewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => toggleViewMode('grid')}
+                  aria-label="Grid view"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                    <path fill="none" d="M0 0h24v24H0z"/>
+                    <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zM13 3h8v8h-8V3zm0 10h8v8h-8v-8z" fill="currentColor"/>
+                  </svg>
+                </button>
+                <button 
+                  className={`view-option ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => toggleViewMode('list')}
+                  aria-label="List view"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                    <path fill="none" d="M0 0h24v24H0z"/>
+                    <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-          
+
           {loading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
@@ -239,9 +227,10 @@ const ProductListing = () => {
               <button onClick={() => window.location.reload()}>Try Again</button>
             </div>
           ) : products.length === 0 ? (
-            <div className="no-products">
+            <div className="no-products-found">
               <div className="no-products-icon">🔍</div>
               <h3>No Products Found</h3>
+              <p>No products found matching your criteria.</p>
               <p>Try adjusting your filters or search terms.</p>
               <button 
                 className="clear-filters-btn"
@@ -252,10 +241,10 @@ const ProductListing = () => {
             </div>
           ) : (
             <>
-              <div className={`products-container ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
+              <div className={`products-grid ${viewMode === 'list' ? 'list-view' : 'grid-view'}`}>
                 {products.map(product => (
                   <ProductCard 
-                    key={product._id}
+                    key={product._id} 
                     product={product}
                     viewMode={viewMode}
                   />
@@ -263,10 +252,10 @@ const ProductListing = () => {
               </div>
               
               {/* Pagination */}
-              {totalPages > 1 && (
+              {Math.ceil(totalProducts / productsPerPage) > 1 && (
                 <Pagination
                   currentPage={currentPage}
-                  totalPages={totalPages}
+                  totalPages={Math.ceil(totalProducts / productsPerPage)}
                   onPageChange={handlePageChange}
                 />
               )}
@@ -276,12 +265,6 @@ const ProductListing = () => {
       </div>
     </div>
   );
-};
-
-// Helper function to get category name from id
-const getCategoryName = (categories, categoryId) => {
-  const category = categories.find(cat => cat._id === categoryId);
-  return category ? category.name : 'All';
 };
 
 export default ProductListing;

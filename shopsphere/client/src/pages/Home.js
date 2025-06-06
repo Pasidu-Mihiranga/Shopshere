@@ -22,7 +22,7 @@ const Home = () => {
         // Fetch all data in parallel
         const [flashSaleRes, featuredRes, categoriesRes] = await Promise.all([
           axios.get('/api/products?isPromoted=true&limit=4'),
-          axios.get('/api/products?limit=12'), // Changed: removed sort=popular to get all products, increased limit
+          axios.get('/api/products?limit=8'), // Changed: removed sort=popular to get all products, increased limit
           axios.get('/api/categories?limit=5')
         ]);
 
@@ -101,22 +101,22 @@ const Home = () => {
               className="category-card"
             >
               <div className="category-icon">
-                {category.name === 'Fashion' && (
-                  <span className="icon-fashion">👕</span>
-                )}
                 {category.name === 'Electronics' && (
                   <span className="icon-electronics">📱</span>
                 )}
-                {category.name === 'Cosmetics' && (
-                  <span className="icon-cosmetics">💄</span>
+                {category.name === 'Clothing' && (
+                  <span className="icon-clothing">👕</span>
                 )}
-                {category.name === 'Footwear' && (
-                  <span className="icon-footwear">👟</span>
+                {category.name === 'Books' && (
+                  <span className="icon-books">📚</span>
                 )}
-                {category.name === 'Accessories' && (
-                  <span className="icon-accessories">👜</span>
+                {category.name === 'Home & Garden' && (
+                  <span className="icon-home-garden">🏡</span>
                 )}
-                {!['Fashion', 'Electronics', 'Cosmetics', 'Footwear', 'Accessories'].includes(category.name) && (
+                {category.name === 'Sports' && (
+                  <span className="icon-sports">⚽</span>
+                )}
+                {!['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports'].includes(category.name) && (
                   <span className="icon-general">🛍️</span>
                 )}
               </div>
@@ -152,14 +152,14 @@ const Home = () => {
         )}
         
         {!productsLoading && !productsError && featuredProducts.length > 0 && (
-          <div className="products-grid">
+          <div className="home-products-grid">
             {featuredProducts.map(product => (
               <Link 
                 key={product._id} 
                 to={`/products/${product._id}`}
-                className="product-card"
+                className="home-product-card"
               >
-                <div className="product-image">
+                <div className="home-product-image">
                   <img 
                     src={product.images && product.images.length > 0 
                       ? product.images[0] 
@@ -167,25 +167,25 @@ const Home = () => {
                     alt={product.name} 
                   />
                   {product.salePrice && (
-                    <span className="discount-badge">
+                    <span className="home-discount-badge">
                       {calculateDiscount(product.price, product.salePrice)}% OFF
                     </span>
                   )}
                 </div>
-                <div className="product-info">
-                  <h3 className="product-name">{product.name}</h3>
-                  <div className="product-price">
+                <div className="home-product-info">
+                  <h3 className="home-product-name">{product.name}</h3>
+                  <div className="home-product-price">
                     {product.salePrice ? (
                       <>
-                        <span className="sale-price">{formatPrice(product.salePrice)}</span>
-                        <span className="original-price">{formatPrice(product.price)}</span>
+                        <span className="home-sale-price">{formatPrice(product.salePrice)}</span>
+                        <span className="home-original-price">{formatPrice(product.price)}</span>
                       </>
                     ) : (
-                      <span className="regular-price">{formatPrice(product.price)}</span>
+                      <span className="home-regular-price">{formatPrice(product.price)}</span>
                     )}
                   </div>
                 </div>
-                <button className="add-to-cart">Add to Cart</button>
+                <button className="home-add-to-cart">Add to Cart</button>
               </Link>
             ))}
           </div>

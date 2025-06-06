@@ -397,70 +397,125 @@ exports.updateProductStatus = async (req, res) => {
   }
 };
 
-// Get all products (public)
+// Get all products (public) - COMPLETE FIXED FUNCTION
 exports.getProducts = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
-    const skip = (page - 1) * limit;
+    console.log('🔍 Product search request:', req.query);
 
-    // Build query based on filters
-    const query = { isActive: true };
-    
-    // Search functionality
-    if (req.query.search) {
-      query.$text = { $search: req.query.search };
+    const {
+      page = 1,
+      limit = 12,
+      sort = 'newest',
+      search,
+      categories, // This comes as comma-separated category IDs
+      minPrice,
+      maxPrice,
+      rating
+    } = req.query;
+
+    // Calculate pagination
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build the filter object
+    let query = { isActive: true };
+
+    // Search filter
+    if (search) {
+      console.log('🔍 Search term:', search);
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
     }
-    
-    // Category filter
-    if (req.query.categories) {
-      const categoryIds = req.query.categories.split(',');
+
+    // Category filter - FIXED VERSION
+    if (categories) {
+      console.log('🔍 Categories filter received:', categories);
+      
+      // Split comma-separated category IDs and trim whitespace
+      const categoryIds = categories.split(',').map(id => id.trim());
+      console.log('🔍 Category IDs for filtering:', categoryIds);
+      
+      // Filter by category IDs directly - NO conversion to names
       query.category = { $in: categoryIds };
+      
+      console.log('🔍 Final MongoDB filter for categories:', query.category);
     }
     
     // Price range filter
-    if (req.query.minPrice || req.query.maxPrice) {
+    if (minPrice || maxPrice) {
       query.price = {};
-      if (req.query.minPrice) query.price.$gte = parseFloat(req.query.minPrice);
-      if (req.query.maxPrice) query.price.$lte = parseFloat(req.query.maxPrice);
-    }
-
-    // Sorting
-    let sort = { createdAt: -1 }; // Default: newest first
-    if (req.query.sort) {
-      switch (req.query.sort) {
-        case 'price_asc':
-          sort = { price: 1 };
-          break;
-        case 'price_desc':
-          sort = { price: -1 };
-          break;
-        case 'rating_desc':
-          sort = { rating: -1 };
-          break;
-        case 'popular':
-          sort = { rating: -1, createdAt: -1 };
-          break;
-        default:
-          sort = { createdAt: -1 };
+      if (minPrice) {
+        query.price.$gte = parseFloat(minPrice);
+        console.log('🔍 Min price filter:', minPrice);
+      }
+      if (maxPrice) {
+        query.price.$lte = parseFloat(maxPrice);
+        console.log('🔍 Max price filter:', maxPrice);
       }
     }
 
+    // Rating filter
+    if (rating) {
+      query.rating = { $gte: parseFloat(rating) };
+      console.log('🔍 Rating filter:', rating);
+    }
+
+    console.log('🔍 Final query object:', JSON.stringify(query, null, 2));
+
+    // Sorting
+    let sortQuery = {};
+    switch (sort) {
+      case 'price_asc':
+        sortQuery = { price: 1 };
+        break;
+      case 'price_desc':
+        sortQuery = { price: -1 };
+        break;
+      case 'rating_desc':
+        sortQuery = { rating: -1 };
+        break;
+      case 'popular':
+        sortQuery = { rating: -1, createdAt: -1 };
+        break;
+      case 'newest':
+      default:
+        sortQuery = { createdAt: -1 };
+        break;
+    }
+
+    console.log('🔍 Sort query:', sortQuery);
+
+    // Execute the query
     const products = await Product.find(query)
       .populate('category', 'name')
       .populate('shopId', 'shopName')
-      .sort(sort)
+      .sort(sortQuery)
       .skip(skip)
-      .limit(limit);
+      .limit(limitNumber);
 
+    // Get total count for pagination
     const total = await Product.countDocuments(query);
+
+    console.log(`📦 Found ${products.length} products after filtering`);
+    console.log(`📊 Total products matching filter: ${total}`);
+
+    // Add category name to each product for frontend display
+    const productsWithCategoryName = products.map(product => ({
+      ...product.toObject(),
+      categoryName: product.category?.name || 'Uncategorized',
+      shopName: product.shopId?.shopName || 'Unknown Shop'
+    }));
 
     res.json({
       success: true,
-      products: products,
+      products: productsWithCategoryName,
       total: total,
-      page: page,
-      totalPages: Math.ceil(total / limit)
+      page: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+      hasMore: skip + products.length < total
     });
 
   } catch (error) {
@@ -479,21 +534,33 @@ exports.getProductById = async (req, res) => {
   try {
     const { id } = req.params;
     
+    console.log('🔍 Fetching product by ID:', id);
+    
     const product = await Product.findById(id)
       .populate('category', 'name')
       .populate('shopId', 'shopName logo contact')
       .populate('reviews.userId', 'firstName lastName');
 
     if (!product) {
+      console.log('❌ Product not found:', id);
       return res.status(404).json({ 
         success: false,
         message: 'Product not found' 
       });
     }
 
+    console.log('✅ Product found:', product.name);
+
+    // Add category name for consistency
+    const productWithCategoryName = {
+      ...product.toObject(),
+      categoryName: product.category?.name || 'Uncategorized',
+      shopName: product.shopId?.shopName || 'Unknown Shop'
+    };
+
     res.json({
       success: true,
-      product: product
+      product: productWithCategoryName
     });
 
   } catch (error) {
@@ -502,13 +569,168 @@ exports.getProductById = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ 
         success: false,
-        message: 'Invalid product ID' 
+        message: 'Invalid product ID format' 
       });
     }
     
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch product' 
+    });
+  }
+};
+
+// Get products by category - Additional helper endpoint
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { page = 1, limit = 12, sort = 'newest' } = req.query;
+
+    console.log('🔍 Fetching products by category:', categoryId);
+
+    // Verify category exists
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found'
+      });
+    }
+
+    const query = { 
+      isActive: true, 
+      category: categoryId 
+    };
+
+    // Sorting
+    let sortQuery = {};
+    switch (sort) {
+      case 'price_asc': sortQuery = { price: 1 }; break;
+      case 'price_desc': sortQuery = { price: -1 }; break;
+      case 'rating_desc': sortQuery = { rating: -1 }; break;
+      case 'popular': sortQuery = { rating: -1, createdAt: -1 }; break;
+      case 'newest': default: sortQuery = { createdAt: -1 }; break;
+    }
+
+    // Pagination
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const products = await Product.find(query)
+      .populate('category', 'name')
+      .populate('shopId', 'shopName')
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limitNumber);
+
+    const total = await Product.countDocuments(query);
+
+    const productsWithCategoryName = products.map(product => ({
+      ...product.toObject(),
+      categoryName: product.category?.name || 'Uncategorized',
+      shopName: product.shopId?.shopName || 'Unknown Shop'
+    }));
+
+    console.log(`✅ Found ${products.length} products in category: ${category.name}`);
+
+    res.json({
+      success: true,
+      products: productsWithCategoryName,
+      total: total,
+      page: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+      category: {
+        _id: category._id,
+        name: category.name
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching products by category:', error);
+    
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category ID format'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch products by category'
+    });
+  }
+};
+
+// Search products - Additional helper endpoint
+exports.searchProducts = async (req, res) => {
+  try {
+    const { q: searchTerm, page = 1, limit = 12, sort = 'newest' } = req.query;
+
+    if (!searchTerm || !searchTerm.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search term is required'
+      });
+    }
+
+    console.log('🔍 Searching products for:', searchTerm);
+
+    const query = {
+      isActive: true,
+      $or: [
+        { name: { $regex: searchTerm, $options: 'i' } },
+        { description: { $regex: searchTerm, $options: 'i' } }
+      ]
+    };
+
+    // Sorting
+    let sortQuery = {};
+    switch (sort) {
+      case 'price_asc': sortQuery = { price: 1 }; break;
+      case 'price_desc': sortQuery = { price: -1 }; break;
+      case 'rating_desc': sortQuery = { rating: -1 }; break;
+      case 'popular': sortQuery = { rating: -1, createdAt: -1 }; break;
+      case 'newest': default: sortQuery = { createdAt: -1 }; break;
+    }
+
+    // Pagination
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const products = await Product.find(query)
+      .populate('category', 'name')
+      .populate('shopId', 'shopName')
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limitNumber);
+
+    const total = await Product.countDocuments(query);
+
+    const productsWithCategoryName = products.map(product => ({
+      ...product.toObject(),
+      categoryName: product.category?.name || 'Uncategorized',
+      shopName: product.shopId?.shopName || 'Unknown Shop'
+    }));
+
+    console.log(`✅ Found ${products.length} products for search: "${searchTerm}"`);
+
+    res.json({
+      success: true,
+      products: productsWithCategoryName,
+      total: total,
+      page: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+      searchTerm: searchTerm
+    });
+
+  } catch (error) {
+    console.error('❌ Error searching products:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search products'
     });
   }
 };
