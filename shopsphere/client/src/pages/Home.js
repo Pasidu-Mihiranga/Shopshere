@@ -4,34 +4,59 @@ import axios from 'axios';
 import './Home.css';
 import FlashSaleAd from "../components/FlashSaleAd/FlashSaleAd";
 
-
 const Home = () => {
   const [flashSaleProducts, setFlashSaleProducts] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState(null);
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
+        setProductsLoading(true);
+        
         // Fetch all data in parallel
         const [flashSaleRes, featuredRes, categoriesRes] = await Promise.all([
           axios.get('/api/products?isPromoted=true&limit=4'),
-          axios.get('/api/products?sort=popular&limit=8'),
+          axios.get('/api/products?limit=12'), // Changed: removed sort=popular to get all products, increased limit
           axios.get('/api/categories?limit=5')
         ]);
 
-        setFlashSaleProducts(flashSaleRes.data.products);
-        setFeaturedProducts(featuredRes.data.products);
-        setCategories(categoriesRes.data);
+        console.log('✅ Products response:', featuredRes.data);
+        console.log('✅ Categories response:', categoriesRes.data);
+
+        setFlashSaleProducts(flashSaleRes.data.products || []);
+        
+        // Handle different response structures for products
+        if (featuredRes.data && featuredRes.data.products) {
+          setFeaturedProducts(featuredRes.data.products);
+        } else if (Array.isArray(featuredRes.data)) {
+          setFeaturedProducts(featuredRes.data);
+        } else {
+          setFeaturedProducts([]);
+        }
+        
+        // Handle different response structures for categories
+        if (categoriesRes.data && categoriesRes.data.categories) {
+          setCategories(categoriesRes.data.categories);
+        } else if (Array.isArray(categoriesRes.data)) {
+          setCategories(categoriesRes.data);
+        } else {
+          setCategories([]);
+        }
         setError(null);
+        setProductsError(null);
       } catch (err) {
         console.error('Error fetching home data:', err);
         setError('Failed to load content. Please try again later.');
+        setProductsError('Failed to load products. Please try again later.');
       } finally {
         setLoading(false);
+        setProductsLoading(false);
       }
     };
 
@@ -62,7 +87,6 @@ const Home = () => {
       {/* Hero Banner */}
       <FlashSaleAd/>
       
-
       {/* Categories Section */}
       <section className="categories-section">
         <div className="section-header">
@@ -102,56 +126,70 @@ const Home = () => {
         </div>
       </section>
 
-      
-      
-
-      {/* Featured Products */}
+      {/* Our Products Section */}
       <section className="featured-products-section">
         <div className="section-header">
-          <h2>Featured Products</h2>
+          <h2>Our Products</h2>
           <Link to="/products" className="view-all">View All</Link>
         </div>
-        <div className="products-grid">
-          {featuredProducts.map(product => (
-            <Link 
-              key={product._id} 
-              to={`/products/${product._id}`}
-              className="product-card"
-            >
-              <div className="product-image">
-                <img 
-                  src={product.images && product.images.length > 0 
-                    ? product.images[0] 
-                    : '/images/placeholder-product.png'} 
-                  alt={product.name} 
-                />
-                {product.salePrice && (
-                  <span className="discount-badge">
-                    {calculateDiscount(product.price, product.salePrice)}% OFF
-                  </span>
-                )}
-              </div>
-              <div className="product-info">
-                <h3 className="product-name">{product.name}</h3>
-                <div className="product-price">
-                  {product.salePrice ? (
-                    <>
-                      <span className="sale-price">{formatPrice(product.salePrice)}</span>
-                      <span className="original-price">{formatPrice(product.price)}</span>
-                    </>
-                  ) : (
-                    <span className="regular-price">{formatPrice(product.price)}</span>
+        
+        {productsLoading && (
+          <div className="loading-state">
+            <p>Loading products...</p>
+          </div>
+        )}
+        
+        {productsError && (
+          <div className="error-state">
+            <p style={{color: 'red', textAlign: 'center'}}>{productsError}</p>
+          </div>
+        )}
+        
+        {!productsLoading && !productsError && featuredProducts.length === 0 && (
+          <div className="empty-state">
+            <p style={{textAlign: 'center'}}>No products available at the moment.</p>
+          </div>
+        )}
+        
+        {!productsLoading && !productsError && featuredProducts.length > 0 && (
+          <div className="products-grid">
+            {featuredProducts.map(product => (
+              <Link 
+                key={product._id} 
+                to={`/products/${product._id}`}
+                className="product-card"
+              >
+                <div className="product-image">
+                  <img 
+                    src={product.images && product.images.length > 0 
+                      ? product.images[0] 
+                      : '/images/placeholder-product.png'} 
+                    alt={product.name} 
+                  />
+                  {product.salePrice && (
+                    <span className="discount-badge">
+                      {calculateDiscount(product.price, product.salePrice)}% OFF
+                    </span>
                   )}
                 </div>
-                <div className="product-rating">
-                  <div className="stars" style={{ '--rating': product.rating || 0 }}></div>
-                  <span>({product.reviews?.length || 0})</span>
+                <div className="product-info">
+                  <h3 className="product-name">{product.name}</h3>
+                  <div className="product-price">
+                    {product.salePrice ? (
+                      <>
+                        <span className="sale-price">{formatPrice(product.salePrice)}</span>
+                        <span className="original-price">{formatPrice(product.price)}</span>
+                      </>
+                    ) : (
+                      <span className="regular-price">{formatPrice(product.price)}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <button className="add-to-cart">Add to Cart</button>
-            </Link>
-          ))}
-        </div>
+                <button className="add-to-cart">Add to Cart</button>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Promotional Banners */}
