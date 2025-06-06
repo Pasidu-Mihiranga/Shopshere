@@ -14,6 +14,7 @@ console.log('🚀 Starting SHOPSPHERE API...');
 
 const app = express();
 
+const Cart = require('./models/Cart');
 // ============================================================================
 // DATABASE MODELS/SCHEMAS
 // ============================================================================
@@ -248,44 +249,44 @@ const categorySchema = new mongoose.Schema({
 });
 
 // Cart Schema
-const cartSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true
-  },
-  items: [{
-    productId: {
-      type: String,
-      required: true
-    },
-    shopId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Shop',
-      required: true
-    },
-    name: String,
-    price: Number,
-    image: String,
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-    attributes: {
-      type: Map,
-      of: mongoose.Schema.Types.Mixed,
-      default: {}
-    }
-  }],
-  totalAmount: {
-    type: Number,
-    default: 0
-  }
-}, {
-  timestamps: true
-});
+// const cartSchema = new mongoose.Schema({
+//   userId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'User',
+//     required: true,
+//     unique: true
+//   },
+//   items: [{
+//     productId: {
+//       type: String,
+//       required: true
+//     },
+//     shopId: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: 'Shop',
+//       required: true
+//     },
+//     name: String,
+//     price: Number,
+//     image: String,
+//     quantity: {
+//       type: Number,
+//       required: true,
+//       min: 1
+//     },
+//     attributes: {
+//       type: Map,
+//       of: mongoose.Schema.Types.Mixed,
+//       default: {}
+//     }
+//   }],
+//   totalAmount: {
+//     type: Number,
+//     default: 0
+//   }
+// }, {
+//   timestamps: true
+// });
 
 // Order Schema
 const orderSchema = new mongoose.Schema({
@@ -364,7 +365,7 @@ const orderSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 const Shop = mongoose.model('Shop', shopSchema);
 const Category = mongoose.model('Category', categorySchema);
-const Cart = mongoose.model('Cart', cartSchema);
+//const Cart = mongoose.model('Cart', cartSchema);
 const Order = mongoose.model('Order', orderSchema);
 
 console.log('✅ Database models created (User, Shop, Category, Cart, Order)');
@@ -588,6 +589,8 @@ app.use((req, res, next) => {
 
 console.log('✅ Middleware configured');
 
+const cartRoutes = require('./routes/cartRoutes');
+
 // ============================================================================
 // DATABASE CONNECTION
 // ============================================================================
@@ -625,6 +628,7 @@ const connectDB = async () => {
 // Connect to database
 connectDB();
 
+app.use('/api/cart', cartRoutes);
 // ============================================================================
 // CORE ROUTES
 // ============================================================================
@@ -1610,7 +1614,7 @@ app.delete('/api/products/:id', authenticateToken, isShopOwner, async (req, res)
         });
       }
       
-      shop.products.id(productId).deleteOne;
+      shop.products.id(productId).deleteOne();
       await shop.save();
       
     } else {
@@ -2025,6 +2029,7 @@ app.get('/api/products/category/:categoryId', async (req, res) => {
   }
 });
 
+app.use('/api/cart', cartRoutes);
 // Also check if you have similar logic in the main products endpoint in app.js
 // Look for any other places that do: product.category === categoryName
 // And change them to: product.category.toString() === categoryId
@@ -2034,338 +2039,338 @@ app.get('/api/products/category/:categoryId', async (req, res) => {
 // ============================================================================
 
 // Get user cart
-app.get('/api/cart', authenticateToken, async (req, res) => {
-  console.log('✅ Get cart route accessed');
+// app.get('/api/cart', authenticateToken, async (req, res) => {
+//   console.log('✅ Get cart route accessed');
   
-  try {
-    let cart;
+//   try {
+//     let cart;
     
-    if (isDatabaseConnected()) {
-      cart = await Cart.findOne({ userId: req.user._id });
+//     if (isDatabaseConnected()) {
+//       cart = await Cart.findOne({ userId: req.user._id });
       
-      if (!cart) {
-        cart = new Cart({
-          userId: req.user._id,
-          items: [],
-          totalAmount: 0
-        });
-        await cart.save();
-      }
-    } else {
-      cart = inMemoryCarts.find(c => c.userId === req.user._id);
+//       if (!cart) {
+//         cart = new Cart({
+//           userId: req.user._id,
+//           items: [],
+//           totalAmount: 0
+//         });
+//         await cart.save();
+//       }
+//     } else {
+//       cart = inMemoryCarts.find(c => c.userId === req.user._id);
       
-      if (!cart) {
-        cart = {
-          _id: Date.now().toString(),
-          userId: req.user._id,
-          items: [],
-          totalAmount: 0
-        };
-        inMemoryCarts.push(cart);
-      }
-    }
+//       if (!cart) {
+//         cart = {
+//           _id: Date.now().toString(),
+//           userId: req.user._id,
+//           items: [],
+//           totalAmount: 0
+//         };
+//         inMemoryCarts.push(cart);
+//       }
+//     }
     
-    res.json({
-      success: true,
-      items: cart.items,
-      totalAmount: cart.totalAmount,
-      totalItems: cart.items.reduce((total, item) => total + item.quantity, 0)
-    });
+//     res.json({
+//       success: true,
+//       items: cart.items,
+//       totalAmount: cart.totalAmount,
+//       totalItems: cart.items.reduce((total, item) => total + item.quantity, 0)
+//     });
     
-  } catch (error) {
-    console.error('Error fetching cart:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch cart',
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error fetching cart:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch cart',
+//       error: error.message
+//     });
+//   }
+// });
 
-// Add item to cart
-app.post('/api/cart/items', authenticateToken, async (req, res) => {
-  console.log('✅ Add to cart route accessed');
+// // Add item to cart
+// app.post('/api/cart/items', authenticateToken, async (req, res) => {
+//   console.log('✅ Add to cart route accessed');
   
-  try {
-    const { productId, shopId, quantity, attributes } = req.body;
+//   try {
+//     const { productId, shopId, quantity, attributes } = req.body;
     
-    // Find the product to get current details
-    let productDetails = null;
+//     // Find the product to get current details
+//     let productDetails = null;
     
-    if (isDatabaseConnected()) {
-      const shop = await Shop.findById(shopId);
-      if (shop) {
-        productDetails = shop.products.id(productId);
-      }
-    } else {
-      const shop = inMemoryShops.find(s => s._id === shopId);
-      if (shop) {
-        productDetails = shop.products.find(p => p._id === productId);
-      }
-    }
+//     if (isDatabaseConnected()) {
+//       const shop = await Shop.findById(shopId);
+//       if (shop) {
+//         productDetails = shop.products.id(productId);
+//       }
+//     } else {
+//       const shop = inMemoryShops.find(s => s._id === shopId);
+//       if (shop) {
+//         productDetails = shop.products.find(p => p._id === productId);
+//       }
+//     }
     
-    if (!productDetails) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
+//     if (!productDetails) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Product not found'
+//       });
+//     }
     
-    const itemData = {
-      productId,
-      shopId,
-      name: productDetails.name,
-      price: productDetails.salePrice || productDetails.price,
-      image: productDetails.images[0] || '',
-      quantity: parseInt(quantity),
-      attributes: attributes || {}
-    };
+//     const itemData = {
+//       productId,
+//       shopId,
+//       name: productDetails.name,
+//       price: productDetails.salePrice || productDetails.price,
+//       image: productDetails.images[0] || '',
+//       quantity: parseInt(quantity),
+//       attributes: attributes || {}
+//     };
     
-    if (isDatabaseConnected()) {
-      let cart = await Cart.findOne({ userId: req.user._id });
+//     if (isDatabaseConnected()) {
+//       let cart = await Cart.findOne({ userId: req.user._id });
       
-      if (!cart) {
-        cart = new Cart({
-          userId: req.user._id,
-          items: [],
-          totalAmount: 0
-        });
-      }
+//       if (!cart) {
+//         cart = new Cart({
+//           userId: req.user._id,
+//           items: [],
+//           totalAmount: 0
+//         });
+//       }
       
-      // Check if item already exists
-      const existingItemIndex = cart.items.findIndex(item => 
-        item.productId === productId && 
-        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
-      );
+//       // Check if item already exists
+//       const existingItemIndex = cart.items.findIndex(item => 
+//         item.productId === productId && 
+//         JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+//       );
       
-      if (existingItemIndex >= 0) {
-        cart.items[existingItemIndex].quantity += parseInt(quantity);
-      } else {
-        cart.items.push(itemData);
-      }
+//       if (existingItemIndex >= 0) {
+//         cart.items[existingItemIndex].quantity += parseInt(quantity);
+//       } else {
+//         cart.items.push(itemData);
+//       }
       
-      // Recalculate total
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//       // Recalculate total
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
       
-      await cart.save();
+//       await cart.save();
       
-    } else {
-      let cart = inMemoryCarts.find(c => c.userId === req.user._id);
+//     } else {
+//       let cart = inMemoryCarts.find(c => c.userId === req.user._id);
       
-      if (!cart) {
-        cart = {
-          _id: Date.now().toString(),
-          userId: req.user._id,
-          items: [],
-          totalAmount: 0
-        };
-        inMemoryCarts.push(cart);
-      }
+//       if (!cart) {
+//         cart = {
+//           _id: Date.now().toString(),
+//           userId: req.user._id,
+//           items: [],
+//           totalAmount: 0
+//         };
+//         inMemoryCarts.push(cart);
+//       }
       
-      // Check if item already exists
-      const existingItemIndex = cart.items.findIndex(item => 
-        item.productId === productId && 
-        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
-      );
+//       // Check if item already exists
+//       const existingItemIndex = cart.items.findIndex(item => 
+//         item.productId === productId && 
+//         JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+//       );
       
-      if (existingItemIndex >= 0) {
-        cart.items[existingItemIndex].quantity += parseInt(quantity);
-      } else {
-        cart.items.push({
-          ...itemData,
-          _id: Date.now().toString()
-        });
-      }
+//       if (existingItemIndex >= 0) {
+//         cart.items[existingItemIndex].quantity += parseInt(quantity);
+//       } else {
+//         cart.items.push({
+//           ...itemData,
+//           _id: Date.now().toString()
+//         });
+//       }
       
-      // Recalculate total
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
+//       // Recalculate total
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//     }
     
-    res.status(201).json({
-      success: true,
-      message: 'Item added to cart successfully',
-      item: itemData
-    });
+//     res.status(201).json({
+//       success: true,
+//       message: 'Item added to cart successfully',
+//       item: itemData
+//     });
     
-  } catch (error) {
-    console.error('Error adding to cart:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to add item to cart',
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error adding to cart:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to add item to cart',
+//       error: error.message
+//     });
+//   }
+// });
 
-// Update cart item quantity
-app.put('/api/cart/items/:productId', authenticateToken, async (req, res) => {
-  console.log('✅ Update cart item route accessed');
+// // Update cart item quantity
+// app.put('/api/cart/items/:productId', authenticateToken, async (req, res) => {
+//   console.log('✅ Update cart item route accessed');
   
-  try {
-    const { productId } = req.params;
-    const { quantity, attributes } = req.body;
+//   try {
+//     const { productId } = req.params;
+//     const { quantity, attributes } = req.body;
     
-    if (isDatabaseConnected()) {
-      const cart = await Cart.findOne({ userId: req.user._id });
+//     if (isDatabaseConnected()) {
+//       const cart = await Cart.findOne({ userId: req.user._id });
       
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
+//       if (!cart) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Cart not found'
+//         });
+//       }
       
-      const itemIndex = cart.items.findIndex(item => 
-        item.productId === productId && 
-        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
-      );
+//       const itemIndex = cart.items.findIndex(item => 
+//         item.productId === productId && 
+//         JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+//       );
       
-      if (itemIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: 'Item not found in cart'
-        });
-      }
+//       if (itemIndex === -1) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Item not found in cart'
+//         });
+//       }
       
-      cart.items[itemIndex].quantity = parseInt(quantity);
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//       cart.items[itemIndex].quantity = parseInt(quantity);
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
       
-      await cart.save();
+//       await cart.save();
       
-    } else {
-      const cart = inMemoryCarts.find(c => c.userId === req.user._id);
+//     } else {
+//       const cart = inMemoryCarts.find(c => c.userId === req.user._id);
       
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
+//       if (!cart) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Cart not found'
+//         });
+//       }
       
-      const itemIndex = cart.items.findIndex(item => 
-        item.productId === productId && 
-        JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
-      );
+//       const itemIndex = cart.items.findIndex(item => 
+//         item.productId === productId && 
+//         JSON.stringify(item.attributes) === JSON.stringify(attributes || {})
+//       );
       
-      if (itemIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: 'Item not found in cart'
-        });
-      }
+//       if (itemIndex === -1) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Item not found in cart'
+//         });
+//       }
       
-      cart.items[itemIndex].quantity = parseInt(quantity);
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
+//       cart.items[itemIndex].quantity = parseInt(quantity);
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//     }
     
-    res.json({
-      success: true,
-      message: 'Cart item updated successfully'
-    });
+//     res.json({
+//       success: true,
+//       message: 'Cart item updated successfully'
+//     });
     
-  } catch (error) {
-    console.error('Error updating cart item:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update cart item',
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error updating cart item:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to update cart item',
+//       error: error.message
+//     });
+//   }
+// });
 
-// Remove item from cart
-app.delete('/api/cart/items/:productId', authenticateToken, async (req, res) => {
-  console.log('✅ Remove cart item route accessed');
+// // Remove item from cart
+// app.delete('/api/cart/items/:productId', authenticateToken, async (req, res) => {
+//   console.log('✅ Remove cart item route accessed');
   
-  try {
-    const { productId } = req.params;
-    const { attributes } = req.body;
+//   try {
+//     const { productId } = req.params;
+//     const { attributes } = req.body;
     
-    if (isDatabaseConnected()) {
-      const cart = await Cart.findOne({ userId: req.user._id });
+//     if (isDatabaseConnected()) {
+//       const cart = await Cart.findOne({ userId: req.user._id });
       
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
+//       if (!cart) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Cart not found'
+//         });
+//       }
       
-      cart.items = cart.items.filter(item => 
-        !(item.productId === productId && 
-          JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
-      );
+//       cart.items = cart.items.filter(item => 
+//         !(item.productId === productId && 
+//           JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
+//       );
       
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
       
-      await cart.save();
+//       await cart.save();
       
-    } else {
-      const cart = inMemoryCarts.find(c => c.userId === req.user._id);
+//     } else {
+//       const cart = inMemoryCarts.find(c => c.userId === req.user._id);
       
-      if (!cart) {
-        return res.status(404).json({
-          success: false,
-          message: 'Cart not found'
-        });
-      }
+//       if (!cart) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Cart not found'
+//         });
+//       }
       
-      cart.items = cart.items.filter(item => 
-        !(item.productId === productId && 
-          JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
-      );
+//       cart.items = cart.items.filter(item => 
+//         !(item.productId === productId && 
+//           JSON.stringify(item.attributes) === JSON.stringify(attributes || {}))
+//       );
       
-      cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
+//       cart.totalAmount = cart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+//     }
     
-    res.json({
-      success: true,
-      message: 'Item removed from cart successfully'
-    });
+//     res.json({
+//       success: true,
+//       message: 'Item removed from cart successfully'
+//     });
     
-  } catch (error) {
-    console.error('Error removing cart item:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to remove cart item',
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error removing cart item:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to remove cart item',
+//       error: error.message
+//     });
+//   }
+// });
 
-// Clear cart
-app.delete('/api/cart', authenticateToken, async (req, res) => {
-  console.log('✅ Clear cart route accessed');
+// // Clear cart
+// app.delete('/api/cart', authenticateToken, async (req, res) => {
+//   console.log('✅ Clear cart route accessed');
   
-  try {
-    if (isDatabaseConnected()) {
-      await Cart.findOneAndUpdate(
-        { userId: req.user._id },
-        { items: [], totalAmount: 0 },
-        { upsert: true }
-      );
-    } else {
-      const cartIndex = inMemoryCarts.findIndex(c => c.userId === req.user._id);
-      if (cartIndex !== -1) {
-        inMemoryCarts[cartIndex].items = [];
-        inMemoryCarts[cartIndex].totalAmount = 0;
-      }
-    }
+//   try {
+//     if (isDatabaseConnected()) {
+//       await Cart.findOneAndUpdate(
+//         { userId: req.user._id },
+//         { items: [], totalAmount: 0 },
+//         { upsert: true }
+//       );
+//     } else {
+//       const cartIndex = inMemoryCarts.findIndex(c => c.userId === req.user._id);
+//       if (cartIndex !== -1) {
+//         inMemoryCarts[cartIndex].items = [];
+//         inMemoryCarts[cartIndex].totalAmount = 0;
+//       }
+//     }
     
-    res.json({
-      success: true,
-      message: 'Cart cleared successfully'
-    });
+//     res.json({
+//       success: true,
+//       message: 'Cart cleared successfully'
+//     });
     
-  } catch (error) {
-    console.error('Error clearing cart:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to clear cart',
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error clearing cart:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to clear cart',
+//       error: error.message
+//     });
+//   }
+// });
 
 // ============================================================================
 // ORDER ROUTES

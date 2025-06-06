@@ -1,11 +1,10 @@
-// server/routes/cartRoutes.js
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authenticate } = require('../middleware/authMiddleware');
 
 // All routes require authentication
-router.use(authMiddleware.authenticate);
+router.use(authenticate);
 
 router.get('/', cartController.getCart);
 router.post('/items', cartController.addItem);

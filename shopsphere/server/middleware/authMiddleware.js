@@ -1,7 +1,8 @@
 // server/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Shop = require('../models/Shop');
+const mongoose = require('mongoose'); // ✅ ADD THIS LINE
+const User = mongoose.model('User');
+const Shop = mongoose.model('Shop');
 
 // Authentication middleware
 exports.authenticate = async (req, res, next) => {

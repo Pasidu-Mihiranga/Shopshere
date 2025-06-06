@@ -1,39 +1,56 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
-const UserSchema = new mongoose.Schema({
-  userType: {
+const userSchema = new mongoose.Schema({
+  firstName: {
     type: String,
-    enum: ['customer', 'shop_owner'],
-    required: true
+    required: true,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    minlength: 6
   },
-  firstName: {
+  userType: {
     type: String,
-    required: true
+    enum: ['customer', 'shop_owner'],
+    default: 'customer'
   },
-  lastName: {
+  phoneNumber: {
     type: String,
-    required: true
+    default: ''
   },
-  profileImage: String,
-  phoneNumber: String,
+  profileImage: {
+    type: String,
+    default: ''
+  },
   addresses: [{
-    addressType: String,
+    addressType: {
+      type: String,
+      enum: ['shipping', 'billing'],
+      default: 'shipping'
+    },
     street: String,
     city: String,
     state: String,
     zipCode: String,
     country: String,
-    isDefault: Boolean
+    isDefault: {
+      type: Boolean,
+      default: false
+    }
   }],
   authProvider: {
     type: {
@@ -43,22 +60,12 @@ const UserSchema = new mongoose.Schema({
     },
     providerId: String
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: Date
-});
-
-// Hash password before saving
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    return next();
+  isActive: {
+    type: Boolean,
+    default: true
   }
-  
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', userSchema);
