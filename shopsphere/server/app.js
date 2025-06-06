@@ -1586,7 +1586,7 @@ app.delete('/api/products/:id', authenticateToken, isShopOwner, async (req, res)
         });
       }
       
-      shop.products.id(productId).remove();
+      shop.products.id(productId).deleteOne();
       await shop.save();
       
     } else {
