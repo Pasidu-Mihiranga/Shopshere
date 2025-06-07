@@ -1,6 +1,6 @@
 /* Header Styles */
 
-.header {
+.shopsphere-header {
   background-color: #333;
   position: fixed;
   top: 0;
@@ -10,7 +10,7 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.header-container {
+.shopsphere-header-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 15px 20px;
@@ -20,42 +20,42 @@
 }
 
 /* Logo Section */
-.logo-section {
+.shopsphere-logo-section {
   flex-shrink: 0;
 }
 
-.logo-link {
+.shopsphere-logo-link {
   display: block;
 }
 
-.logo {
+.shopsphere-logo {
   height: 60px;
   width: auto;
 }
 
 /* Search Section - Desktop */
-.search-section {
+.shopsphere-search-section {
   flex: 1;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 30px;
 }
 
-.desktop-search {
+.shopsphere-desktop-search {
   display: flex;
 }
 
-.mobile-search {
+.shopsphere-mobile-search {
   display: none;
 }
 
-.search-form {
+.shopsphere-search-form {
   display: flex;
   width: 100%;
   position: relative;
 }
 
-.search-input {
-  width: 600px;
+.shopsphere-search-input {
+  width: 800px;
   flex: 1;
   padding: 12px 20px;
   border: none;
@@ -64,26 +64,26 @@
   font-weight: 500;
   background-color: #e0e0e0;
   font-family: 'Maven Pro', sans-serif;
-  letter-spacing: 1px;
+  letter-spacing: 2.5px;
   outline: none;
   transition: all 0.3s ease;
  
 }
 
-.search-input:focus {
+.shopsphere-search-input:focus {
   background-color: #f0f0f0;
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-.search-input:active {
+.shopsphere-search-input:active {
   outline: none !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-.search-button {
+.shopsphere-search-button {
   background-color: #e0e0e0;
   border: none;
   border-radius: 50%;
@@ -98,18 +98,18 @@
   flex-shrink: 0;
 }
 
-.search-button:hover {
+.shopsphere-search-button:hover {
   background-color: #DE7B3F;
   transform: scale(1.05);
 }
 
-.search-icon {
+.shopsphere-search-icon {
   width: 20px;
   height: 20px;
 }
 
 /* Right Section */
-.right-section {
+.shopsphere-right-section {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -117,21 +117,21 @@
 }
 
 /* Cart */
-.cart-link {
+.shopsphere-cart-link {
   text-decoration: none;
   /* Remove focus outline */
   outline: none;
   border: none;
 }
 
-.cart-link:focus,
-.cart-link:active {
+.shopsphere-cart-link:focus,
+.shopsphere-cart-link:active {
   outline: none;
   border: none;
   box-shadow: none;
 }
 
-.cart-container {
+.shopsphere-cart-container {
   position: relative;
   display: flex;
   align-items: center;
@@ -147,30 +147,29 @@
 }
 
 
-.cart-container:focus,
-.cart-container:active {
+.shopsphere-cart-container:focus,
+.shopsphere-cart-container:active {
   outline: none;
   border: none;
   box-shadow: none;
   
 }
 
-.cart-icon {
+.shopsphere-cart-icon {
   height: 35px;
   width: auto;
   /* Remove outline from the icon itself */
   outline: none;
-  position: absolute;
-  right: 15px;
+  
   
   
 }
-.cart-icon:hover{
+.shopsphere-cart-icon:hover{
   transform: scale(1.1);
   transition: all 0.3s ease;
 }
 
-.cart-badge {
+.shopsphere-cart-badge {
   position: absolute;
   top: -5px;
   right: -5px;
@@ -186,10 +185,10 @@
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
   border: 2px solid #333;
-  animation: pulse 2s infinite;
+  animation: shopsphere-pulse 2s infinite;
 }
 
-@keyframes pulse {
+@keyframes shopsphere-pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
@@ -205,13 +204,13 @@ a:active {
 }
 
 /* Auth Buttons */
-.auth-buttons {
+.shopsphere-auth-buttons {
   display: flex;
   gap: 10px;
 }
 
-.login-button, 
-.register-button {
+.shopsphere-login-button, 
+.shopsphere-register-button {
   font-family: 'Inter', sans-serif;
   font-weight: 600;
   width: 120px;
@@ -226,24 +225,24 @@ a:active {
   letter-spacing: 0.5px;
 }
 
-.login-button {
+.shopsphere-login-button {
   background-color: white;
   color: #333;
 }
 
-.login-button:hover {
+.shopsphere-login-button:hover {
   background-color: #DE7B3F;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.register-button {
+.shopsphere-register-button {
   background-color: white;
   color: #333;
 }
 
-.register-button:hover {
+.shopsphere-register-button:hover {
   background-color: #DE7B3F;
   color: white;
   transform: translateY(-2px);
@@ -251,11 +250,11 @@ a:active {
 }
 
 /* User Menu */
-.user-menu {
+.shopsphere-user-menu {
   position: relative;
 }
 
-.user-menu-button {
+.shopsphere-user-menu-button {
   background: rgba(255, 255, 255, 0.1);
   border: none;
   color: white;
@@ -269,24 +268,24 @@ a:active {
   gap: 8px;
 }
 
-.user-menu-button:hover {
+.shopsphere-user-menu-button:hover {
   background: rgba(222, 123, 63, 0.3);
 }
 
-.username {
+.shopsphere-username {
   font-weight: 500;
   letter-spacing: 0.5px;
 }
 
-.dropdown-arrow {
+.shopsphere-dropdown-arrow {
   transition: transform 0.3s ease;
 }
 
-.dropdown-arrow.open {
+.shopsphere-dropdown-arrow.shopsphere-open {
   transform: rotate(180deg);
 }
 
-.dropdown-menu {
+.shopsphere-dropdown-menu {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
@@ -302,13 +301,13 @@ a:active {
   overflow: hidden;
 }
 
-.dropdown-menu.show {
+.shopsphere-dropdown-menu.shopsphere-show {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.dropdown-menu::before {
+.shopsphere-dropdown-menu::before {
   content: '';
   position: absolute;
   top: -8px;
@@ -320,7 +319,7 @@ a:active {
   box-shadow: -3px -3px 5px rgba(0, 0, 0, 0.1);
 }
 
-.dropdown-item {
+.shopsphere-dropdown-item {
   display: block;
   padding: 12px 20px;
   color: #333;
@@ -335,55 +334,55 @@ a:active {
   font-size: 14px;
 }
 
-.dropdown-item:hover {
+.shopsphere-dropdown-item:hover {
   background-color: #f8f8f8;
   color: #DE7B3F;
 }
 
-.logout-button {
+.shopsphere-logout-button {
   color: #F44336;
   border-top: 1px solid #eee;
 }
 
-.logout-button:hover {
+.shopsphere-logout-button:hover {
   background-color: rgba(244, 67, 54, 0.1);
   color: #F44336;
 }
 
 /* Mobile Responsive */
 @media (max-width: 2000px) {
-  .header-container {
+  .shopsphere-header-container {
     padding: 12px 20px;
   }
   
-  .search-section {
+  .shopsphere-search-section {
     margin: 0 20px;
-    max-width: 400px;
+    max-width: 500px;
   }
   
-  .search-input {
+  .shopsphere-search-input {
     width: 100%;
     font-size: 14px;
   }
   
-  .auth-buttons {
+  .shopsphere-auth-buttons {
     gap: 8px;
   }
   
-  .login-button, 
-  .register-button {
+  .shopsphere-login-button, 
+  .shopsphere-register-button {
     width: 100px;
     font-size: 13px;
     padding: 8px 16px;
   }
-  .search-input{
+  .shopsphere-search-input{
     width: 600px;
   }
   
 }
 
 @media (max-width: 1250px) {
-  .header-container {
+  .shopsphere-header-container {
     flex-direction: column;
     padding: 15px 20px;
     gap: 15px;
@@ -392,21 +391,21 @@ a:active {
 
   /* Logo Section - Mobile */
  
-.logo-section {
+.shopsphere-logo-section {
   order: 1;
   align-self: center;
   width: 100%;
   text-align: center;
 }
 
-.logo {
+.shopsphere-logo {
   height: 100px;
   display: block;
   margin: 0 auto; /* This ensures the logo is centered */
 }
 
 /* Alternative approach using flexbox (if the parent allows) */
-.logo-section-flex {
+.shopsphere-logo-section-flex {
   order: 1;
   align-self: center;
   width: 100%;
@@ -415,24 +414,24 @@ a:active {
   align-items: center;
 }
 
-.logo-flex {
+.shopsphere-logo-flex {
   height: 100px;
 }
 
   /* Auth/User Section - Mobile (show after logo) */
-  .right-section {
+  .shopsphere-right-section {
     order: 2;
     justify-content: center;
     width: 100%;
     gap: 15px;
   }
 
-  .auth-buttons {
+  .shopsphere-auth-buttons {
     gap: 12px;
   }
 
-  .login-button, 
-  .register-button {
+  .shopsphere-login-button, 
+  .shopsphere-register-button {
     width: 100px;
     height: 40px;
     font-size: 13px;
@@ -440,13 +439,13 @@ a:active {
   }
 
   /* Hide desktop search */
-  .desktop-search {
+  .shopsphere-desktop-search {
     display: none;
   }
   
   /* Show mobile search */
   /* Show mobile search */
-.mobile-search {
+.shopsphere-mobile-search {
   display: flex;
   order: 3;
   width: 100%;
@@ -455,14 +454,14 @@ a:active {
   margin: 0;
   max-width: none;
 }
-.cart-container{
+.shopsphere-cart-container{
   width: 100px;
 }
-.mobile-search .search-form {
+.shopsphere-mobile-search .shopsphere-search-form {
   flex: 1;
 }
 
-.mobile-search .search-input {
+.shopsphere-mobile-search .shopsphere-search-input {
   font-size: 14px;
   padding: 12px 16px;
   width: 100%;
@@ -471,32 +470,32 @@ a:active {
   margin-right: 20px;
 }
 
-.search-button:hover {
+.shopsphere-search-button:hover {
   background-color: #DE7B3F;
   transform: scale(1);
 }
 
-.mobile-search .search-button {
+.shopsphere-mobile-search .shopsphere-search-button {
   width: 42px;
   height: 42px;
   margin-left: 0;
 }
 
-.mobile-search .search-icon {
+.shopsphere-mobile-search .shopsphere-search-icon {
   width: 18px;
   height: 18px;
 }
 
 /* Mobile cart positioning */
-.mobile-cart {
+.shopsphere-mobile-cart {
   flex-shrink: 0;
 }
 
-.mobile-cart .cart-icon {
+.shopsphere-mobile-cart .shopsphere-cart-icon {
   height: 32px;
 }
 
-.mobile-cart .cart-badge {
+.shopsphere-mobile-cart .shopsphere-cart-badge {
   width: 20px;
   height: 20px;
   font-size: 11px;
@@ -505,23 +504,23 @@ a:active {
 }
 
 /* Hide desktop cart */
-.right-section .cart-link {
+.shopsphere-right-section .shopsphere-cart-link {
   display: none;
 }
 
 /* User menu adjustments for mobile */
-.user-menu-button {
+.shopsphere-user-menu-button {
   padding: 10px 18px;
   font-size: 15px;
   border-radius: 25px;
 }
 
-.username {
+.shopsphere-username {
   font-size: 14px;
 }
 
 /* Fixed dropdown menu positioning */
-.dropdown-menu {
+.shopsphere-dropdown-menu {
   position: absolute;
   right: 0;
   left: auto;
@@ -532,11 +531,11 @@ a:active {
   margin-left: 50%;
 }
 
-.dropdown-menu.show {
+.shopsphere-dropdown-menu.shopsphere-show {
   transform: translateX(-50%) translateY(0);
 }
 
-.dropdown-menu::before {
+.shopsphere-dropdown-menu::before {
   position: absolute;
   left: 50%;
   right: auto;
@@ -545,7 +544,7 @@ a:active {
 }
 
 /* Center the dropdown items */
-.dropdown-item {
+.shopsphere-dropdown-item {
   padding: 14px 20px;
   font-size: 15px;
   text-align: center;
@@ -554,7 +553,7 @@ a:active {
 }
 
 /* Alternative approach if you want the dropdown centered on screen */
-.dropdown-menu-centered {
+.shopsphere-dropdown-menu-centered {
   position: fixed;
   left: 50%;
   right: auto;
@@ -564,40 +563,40 @@ a:active {
   top: 60px; /* Adjust based on header height */
 }
 
-.dropdown-menu-centered.show {
+.shopsphere-dropdown-menu-centered.shopsphere-show {
   transform: translateX(-50%) translateY(0);
 }
 
-.dropdown-menu-centered::before {
+.shopsphere-dropdown-menu-centered::before {
   display: none; /* Hide arrow for fixed positioning */
 }
 }
 
 @media (max-width: 480px) {
-  .header-container {
+  .shopsphere-header-container {
     padding: 12px 15px;
     gap: 12px;
   }
-  .cart-icon {
+  .shopsphere-cart-icon {
     position: static;
   }
    /* Logo Section - Mobile */
   
-  .logo-section {
+  .shopsphere-logo-section {
     order: 1;
     align-self: center;
     width: 100%;
     text-align: center;
   }
 
-  .logo {
+  .shopsphere-logo {
     height: 100px;
     display: block;
     margin: 0 auto; /* This ensures the logo is centered */
   }
 
   /* Alternative approach using flexbox (if the parent allows) */
-  .logo-section-flex {
+  .shopsphere-logo-section-flex {
     order: 1;
     align-self: center;
     width: 100%;
@@ -606,19 +605,19 @@ a:active {
     align-items: center;
   }
 
-  .logo-flex {
+  .shopsphere-logo-flex {
     height: 100px;
   }
   
 
-  .auth-buttons {
+  .shopsphere-auth-buttons {
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  .login-button, 
-  .register-button {
+  .shopsphere-login-button, 
+  .shopsphere-register-button {
     width: 90px;
     height: 36px;
     font-size: 12px;
@@ -626,31 +625,31 @@ a:active {
     letter-spacing: 0.3px;
   }
 
-  .mobile-search {
+  .shopsphere-mobile-search {
     gap: 10px;
   }
 
-  .mobile-search .search-input {
+  .shopsphere-mobile-search .shopsphere-search-input {
     font-size: 13px;
     padding: 10px 14px;
     border-radius: 20px;
   }
 
-  .mobile-search .search-button {
+  .shopsphere-mobile-search .shopsphere-search-button {
     width: 38px;
     height: 38px;
   }
 
-  .mobile-search .search-icon {
+  .shopsphere-mobile-search .shopsphere-search-icon {
     width: 16px;
     height: 16px;
   }
 
-  .mobile-cart .cart-icon {
+  .shopsphere-mobile-cart .shopsphere-cart-icon {
     height: 28px;
   }
 
-  .mobile-cart .cart-badge {
+  .shopsphere-mobile-cart .shopsphere-cart-badge {
     width: 18px;
     height: 18px;
     font-size: 10px;
@@ -658,13 +657,13 @@ a:active {
     right: -2px;
   }
 
-  .user-menu-button {
+  .shopsphere-user-menu-button {
     padding: 8px 14px;
     font-size: 14px;
     border-radius: 20px;
   }
 
-  .username {
+  .shopsphere-username {
     font-size: 13px;
     max-width: 120px;
     overflow: hidden;
@@ -672,41 +671,41 @@ a:active {
     white-space: nowrap;
   }
 
-  .dropdown-menu {
+  .shopsphere-dropdown-menu {
     min-width: 180px;
     max-width: 85vw;
     border-radius: 8px;
   }
 
-  .dropdown-item {
+  .shopsphere-dropdown-item {
     padding: 12px 16px;
     font-size: 14px;
   }
 }
 
 @media (max-width: 360px) {
-  .header-container {
+  .shopsphere-header-container {
     padding: 10px 12px;
     gap: 10px;
   }
 
    /* Logo Section - Mobile */
  
-.logo-section {
+.shopsphere-logo-section {
   order: 1;
   align-self: center;
   width: 100%;
   text-align: center;
 }
 
-.logo {
+.shopsphere-logo {
   height: 100px;
   display: block;
   margin: 0 auto; /* This ensures the logo is centered */
 }
 
 /* Alternative approach using flexbox (if the parent allows) */
-.logo-section-flex {
+.shopsphere-logo-section-flex {
   order: 1;
   align-self: center;
   width: 100%;
@@ -715,68 +714,68 @@ a:active {
   align-items: center;
 }
 
-.logo-flex {
+.shopsphere-logo-flex {
   height: 100px;
 }
 
-  .auth-buttons {
+  .shopsphere-auth-buttons {
     gap: 6px;
   }
 
-  .login-button, 
-  .register-button {
+  .shopsphere-login-button, 
+  .shopsphere-register-button {
     width: 80px;
     height: 34px;
     font-size: 11px;
     padding: 5px 10px;
   }
 
-  .mobile-search {
+  .shopsphere-mobile-search {
     gap: 8px;
   }
 
-  .mobile-search .search-input {
+  .shopsphere-mobile-search .shopsphere-search-input {
     font-size: 12px;
     padding: 8px 12px;
     border-radius: 18px;
   }
 
-  .mobile-search .search-button {
+  .shopsphere-mobile-search .shopsphere-search-button {
     width: 34px;
     height: 34px;
   }
 
-  .mobile-search .search-icon {
+  .shopsphere-mobile-search .shopsphere-search-icon {
     width: 14px;
     height: 14px;
   }
 
-  .mobile-cart .cart-icon {
+  .shopsphere-mobile-cart .shopsphere-cart-icon {
     height: 26px;
   }
 
-  .mobile-cart .cart-badge {
+  .shopsphere-mobile-cart .shopsphere-cart-badge {
     width: 16px;
     height: 16px;
     font-size: 9px;
   }
 
-  .user-menu-button {
+  .shopsphere-user-menu-button {
     padding: 6px 12px;
     font-size: 13px;
   }
 
-  .username {
+  .shopsphere-username {
     font-size: 12px;
     max-width: 100px;
   }
 
-  .dropdown-menu {
+  .shopsphere-dropdown-menu {
     min-width: 160px;
     max-width: 80vw;
   }
 
-  .dropdown-item {
+  .shopsphere-dropdown-item {
     padding: 10px 14px;
     font-size: 13px;
   }
@@ -794,18 +793,18 @@ input {
 }
 
 /* Focus states for accessibility */
-.login-button:focus,
-.register-button:focus,
-.user-menu-button:focus,
-.search-input:focus,
-.search-button:focus {
+.shopsphere-login-button:focus,
+.shopsphere-register-button:focus,
+.shopsphere-user-menu-button:focus,
+.shopsphere-search-input:focus,
+.shopsphere-search-button:focus {
   outline: 2px solid #DE7B3F;
   outline-offset: 2px;
 }
 
 /* Prevent body scroll when dropdown is open on mobile */
 @media (max-width: 768px) {
-  body.dropdown-open {
+  body.shopsphere-dropdown-open {
     overflow: hidden;
   }
 }
@@ -813,30 +812,30 @@ input {
 /* Additional mobile improvements */
 @media (max-width: 768px) {
   /* Ensure touch targets are at least 44px */
-  .mobile-search .search-button,
-  .mobile-cart .cart-container,
-  .login-button,
-  .register-button,
-  .user-menu-button {
+  .shopsphere-mobile-search .shopsphere-search-button,
+  .shopsphere-mobile-cart .shopsphere-cart-container,
+  .shopsphere-login-button,
+  .shopsphere-register-button,
+  .shopsphere-user-menu-button {
     min-height: 44px;
     min-width: 44px;
   }
 
   /* Improve touch interaction */
-  .dropdown-item {
+  .shopsphere-dropdown-item {
     min-height: 44px;
     display: flex;
     align-items: center;
   }
 
   /* Better spacing for mobile */
-  .header-container {
+  .shopsphere-header-container {
     min-height: auto;
   }
   
 
   /* Prevent horizontal scroll */
-  .mobile-search .search-form {
+  .shopsphere-mobile-search .shopsphere-search-form {
     min-width: 0;
     overflow: hidden;
   }
@@ -844,32 +843,30 @@ input {
 
 /* Landscape phone orientation */
 @media (max-width: 768px) and (orientation: landscape) {
-  .header-container {
+  .shopsphere-header-container {
     flex-direction: row;
     justify-content: space-between;
     padding: 8px 15px;
     gap: 10px;
   }
 
-  
-
    /* Logo Section - Mobile */
   
-  .logo-section {
+  .shopsphere-logo-section {
     order: 1;
     align-self: center;
     width: 100%;
     text-align: center;
   }
 
-  .logo {
+  .shopsphere-logo {
     height: 100px;
     display: block;
     margin: 0 auto; /* This ensures the logo is centered */
   }
 
   /* Alternative approach using flexbox (if the parent allows) */
-  .logo-section-flex {
+  .shopsphere-logo-section-flex {
     order: 1;
     align-self: center;
     width: 100%;
@@ -878,41 +875,41 @@ input {
     align-items: center;
   }
 
-  .logo-flex {
+  .shopsphere-logo-flex {
     height: 100px;
   }
 
-  .mobile-search {
+  .shopsphere-mobile-search {
     order: 2;
     flex: 1;
     max-width: 300px;
     margin: 0 15px;
   }
 
-  .right-section {
+  .shopsphere-right-section {
     order: 3;
     width: auto;
     gap: 10px;
   }
 
-  .auth-buttons {
+  .shopsphere-auth-buttons {
     gap: 8px;
   }
 
-  .login-button, 
-  .register-button {
+  .shopsphere-login-button, 
+  .shopsphere-register-button {
     width: 70px;
     height: 32px;
     font-size: 11px;
     padding: 4px 8px;
   }
 
-  .user-menu-button {
+  .shopsphere-user-menu-button {
     padding: 6px 12px;
     font-size: 12px;
   }
 
-  .username {
+  .shopsphere-username {
     display: none;
   }
 }

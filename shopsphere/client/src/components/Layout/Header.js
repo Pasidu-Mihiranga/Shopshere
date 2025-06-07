@@ -31,7 +31,7 @@ const Header = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownOpen && !event.target.closest('.user-menu')) {
+      if (dropdownOpen && !event.target.closest('.shopsphere-user-menu')) {
         setDropdownOpen(false);
       }
     };
@@ -43,41 +43,41 @@ const Header = () => {
   }, [dropdownOpen]);
 
   return (
-    <header className="header">
-      <div className="header-container">
+    <header className="shopsphere-header">
+      <div className="shopsphere-header-container">
         {/* Logo Section */}
-        <div className="logo-section">
-          <Link to="/" className="logo-link">
-            <img src="/images/Logo.png" alt="SHOPSPHERE" className="logo" />
+        <div className="shopsphere-logo-section">
+          <Link to="/" className="shopsphere-logo-link">
+            <img src="/images/Logo.png" alt="SHOPSPHERE" className="shopsphere-logo" />
           </Link>
         </div>
 
         {/* Desktop Search Section */}
-        <div className="search-section desktop-search">
-          <form onSubmit={handleSearchSubmit} className="search-form">
+        <div className="shopsphere-search-section shopsphere-desktop-search">
+          <form onSubmit={handleSearchSubmit} className="shopsphere-search-form">
             <input 
               type="text" 
-              className="search-input" 
+              className="shopsphere-search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for anything..." 
             />
-            <button type="submit" className="search-button">
-              <img src="/images/searchIcon.png" alt="Search" className="search-icon" />
+            <button type="submit" className="shopsphere-search-button">
+              <img src="/images/searchIcon.png" alt="Search" className="shopsphere-search-icon" />
             </button>
           </form>
         </div>
 
         {/* Right Section - Cart and Auth */}
-        <div className="right-section">
+        <div className="shopsphere-right-section">
           {/* Cart Icon */}
-          <Link to="/cart" className="cart-link">
+          <Link to="/cart" className="shopsphere-cart-link">
 
-            <div  className="cartdiv">
-              <div className="cart-container">
-                <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+            <div  className="shopsphere-cartdiv">
+              <div className="shopsphere-cart-container">
+                <img src="/images/Cart.png" alt="Shopping Cart" className="shopsphere-cart-icon" />
                 {cart.totalItems > 0 && (
-                  <div className="cart-badge">{cart.totalItems}</div>
+                  <div className="shopsphere-cart-badge">{cart.totalItems}</div>
                 )}
               </div>
             </div>
@@ -86,14 +86,14 @@ const Header = () => {
 
           {/* User Menu or Auth Buttons */}
           {user ? (
-            <div className="user-menu">
+            <div className="shopsphere-user-menu">
               <button 
-                className="user-menu-button"
+                className="shopsphere-user-menu-button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <span className="username">{user.firstName}</span>
+                <span className="shopsphere-username">{user.firstName}</span>
                 <svg 
-                  className={`dropdown-arrow ${dropdownOpen ? 'open' : ''}`}
+                  className={`shopsphere-dropdown-arrow ${dropdownOpen ? 'shopsphere-open' : ''}`}
                   width="16" 
                   height="16"
                   viewBox="0 0 24 24"
@@ -103,70 +103,70 @@ const Header = () => {
                 </svg>
               </button>
               
-              <div className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
+              <div className={`shopsphere-dropdown-menu ${dropdownOpen ? 'shopsphere-show' : ''}`}>
                 <Link 
                   to={user.userType === 'customer' ? '/dashboard' : '/seller-dashboard'}
-                  className="dropdown-item"
+                  className="shopsphere-dropdown-item"
                   onClick={() => setDropdownOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link 
                   to="/profile" 
-                  className="dropdown-item"
+                  className="shopsphere-dropdown-item"
                   onClick={() => setDropdownOpen(false)}
                 >
                   Profile
                 </Link>
                 <Link 
                   to="/orders" 
-                  className="dropdown-item"
+                  className="shopsphere-dropdown-item"
                   onClick={() => setDropdownOpen(false)}
                 >
                   Orders
                 </Link>
                 <button 
                   onClick={handleLogout} 
-                  className="dropdown-item logout-button"
+                  className="shopsphere-dropdown-item shopsphere-logout-button"
                 >
                   Logout
                 </button>
               </div>
             </div>
           ) : (
-            <div className="auth-buttons">
+            <div className="shopsphere-auth-buttons">
               <Link to="/login">
-                <button className="login-button">Login</button>
+                <button className="shopsphere-login-button">Login</button>
               </Link>
               <Link to="/register">
-                <button className="register-button">Register</button>
+                <button className="shopsphere-register-button">Register</button>
               </Link>
             </div>
           )}
         </div>
 
         {/* Mobile Search Section */}
-        <div className="search-section mobile-search">
-          <form onSubmit={handleSearchSubmit} className="search-form">
+        <div className="shopsphere-search-section shopsphere-mobile-search">
+          <form onSubmit={handleSearchSubmit} className="shopsphere-search-form">
             <input 
               type="text" 
-              className="search-input" 
+              className="shopsphere-search-input" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for anything..." 
             />
-            <button type="submit" className="search-button">
-              <img src="/images/searchIcon.png" alt="Search" className="search-icon" />
+            <button type="submit" className="shopsphere-search-button">
+              <img src="/images/searchIcon.png" alt="Search" className="shopsphere-search-icon" />
             </button>
           </form>
           
           {/* Mobile Cart */}
-          <Link to="/cart" className="cart-link mobile-cart">
+          <Link to="/cart" className="shopsphere-cart-link shopsphere-mobile-cart">
             <div>
-                <div className="cart-container">
-                <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+                <div className="shopsphere-cart-container">
+                <img src="/images/Cart.png" alt="Shopping Cart" className="shopsphere-cart-icon" />
                 {cart.totalItems > 0 && (
-                  <div className="cart-badge">{cart.totalItems}</div>
+                  <div className="shopsphere-cart-badge">{cart.totalItems}</div>
                 )}
               </div>
             </div>
