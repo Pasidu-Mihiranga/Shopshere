@@ -344,7 +344,7 @@ const ProductDetail = () => {
           )}
 
           {/* Quantity Selector */}
-          <div className="quantity-selector">
+          <div className="quantity-s">
             <h3>Quantity</h3>
             <div className="quantity-controls">
               <button

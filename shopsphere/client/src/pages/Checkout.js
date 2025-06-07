@@ -4,12 +4,16 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import './Checkout.css';
+import OrderSuccessAnimation from '../components/OrderSuccessAnimation';
 
 const Checkout = () => {
   const { cart, loading: cartLoading, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [orderResponse, setOrderResponse] = useState(null);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -226,12 +230,15 @@ console.log('==============================');
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Clear cart after successful order
-      if (clearCart) {
-        await clearCart();
-      }
+      // if (clearCart) {
+      //   await clearCart();
+      // }
       
       // Navigate to order confirmation page
-      navigate(`/order-confirmation/${response.data._id}`);
+      // Show success animation instead of navigating immediately
+      setOrderResponse(response.data);
+      setShowSuccessAnimation(true);
+      setProcessingOrder(false);
     } catch (err) {
   console.error('Error placing order:', err);
   console.error('Full error response:', JSON.stringify(err.response, null, 2)); // CHANGED THIS
@@ -265,6 +272,21 @@ console.log('==============================');
     );
   }
   
+  const handleGoHome = () => {
+  navigate('/');
+};
+
+const handleViewOrders = () => {
+  navigate('/dashboard/orders');
+};
+
+const handleAnimationComplete = () => {
+  if (clearCart) {
+    clearCart();
+  }
+  // Animation finished, you can add any additional logic here
+  console.log('Order success animation completed');
+};
   const summary = calculateSummary();
   
   return (
@@ -599,6 +621,14 @@ console.log('==============================');
           </div>
         </div>
       </div>
+      {showSuccessAnimation && (
+  <OrderSuccessAnimation
+    orderNumber={orderResponse?.orderNumber || 'N/A'}
+    onGoHome={handleGoHome}
+    onViewOrders={handleViewOrders}
+    onComplete={handleAnimationComplete}
+  />
+)}
     </div>
   );
 };

@@ -2407,6 +2407,7 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 
 // Create new order
 // Create new order
+// Create new order
 app.post('/api/orders', authenticateToken, async (req, res) => {
   console.log('✅ Create order route accessed');
   
@@ -2441,9 +2442,8 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         message: 'Invalid shipping address'
       });
     }
-    
     // Calculate totals
-    // Calculate totals - use provided billing info or calculate defaults
+// Calculate totals - use provided billing info or calculate defaults
     const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
     const shippingCost = billing?.shipping || (subtotal > 50 ? 0 : 2.25);
     const tax = billing?.tax || (subtotal * 0.07);

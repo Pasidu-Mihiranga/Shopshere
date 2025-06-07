@@ -870,7 +870,7 @@ body {
     width: 100%;
   }
 
-  .quantity-selector {
+  .quantity-s {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
