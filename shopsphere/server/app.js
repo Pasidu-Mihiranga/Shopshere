@@ -2406,23 +2406,36 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 });
 
 // Create new order
+// Create new order
 app.post('/api/orders', authenticateToken, async (req, res) => {
   console.log('✅ Create order route accessed');
   
   try {
-    const { addressId, items, payment } = req.body;
+    const { addressId, items, payment, shipping, billing } = req.body;
     
-    // Get user's address
+    // Handle shipping address - either from saved address or direct input
     let shippingAddress;
-    if (isDatabaseConnected()) {
-      const user = await User.findById(req.user._id);
-      shippingAddress = user.addresses.id(addressId);
-    } else {
-      const user = inMemoryUsers.find(u => u._id === req.user._id);
-      shippingAddress = user?.addresses?.find(addr => addr._id === addressId);
-    }
     
-    if (!shippingAddress) {
+    if (addressId) {
+      // Using saved address
+      if (isDatabaseConnected()) {
+        const user = await User.findById(req.user._id);
+        shippingAddress = user.addresses.id(addressId);
+      } else {
+        const user = inMemoryUsers.find(u => u._id === req.user._id);
+        shippingAddress = user?.addresses?.find(addr => addr._id === addressId);
+      }
+      
+      if (!shippingAddress) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid address'
+        });
+      }
+    } else if (shipping && shipping.address) {
+      // Using direct shipping info from checkout form
+      shippingAddress = shipping.address;
+    } else {
       return res.status(400).json({
         success: false,
         message: 'Invalid shipping address'
@@ -2430,33 +2443,45 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     }
     
     // Calculate totals
+    // Calculate totals - use provided billing info or calculate defaults
     const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const shipping = 2.25; // Fixed shipping cost
-    const total = subtotal + shipping;
+    const shippingCost = billing?.shipping || (subtotal > 50 ? 0 : 2.25);
+    const tax = billing?.tax || (subtotal * 0.07);
+    const discount = billing?.discount || 0;
+    const total = billing?.total || (subtotal + shippingCost + tax - discount);
     
     const orderData = {
       orderNumber: generateOrderNumber(),
       userId: req.user._id,
-      items: items,
+      items: items.map(item => ({
+        ...item,
+        image: item.image || ''
+      })),
       billing: {
-        address: shippingAddress,
-        subtotal: subtotal,
-        shipping: shipping,
-        discount: 0,
-        total: total
+        address: billing?.address || shippingAddress,
+        subtotal,
+        shipping: shippingCost,
+        tax,
+        discount,
+        total
       },
       shipping: {
         address: shippingAddress,
-        method: 'standard',
+        method: shipping?.method || 'Standard Shipping',
+        cost: shippingCost,
         estimatedDelivery: {
           from: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
           to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)    // 7 days from now
         }
       },
       payment: {
-        method: payment.method,
-        status: 'pending'
-      }
+        method: payment?.method || 'card',
+        transactionId: payment?.transactionId,
+        status: payment?.status || 'pending',
+        details: payment?.details || {}
+      },
+      // Store shipping info directly for easy access in order confirmation
+      shippingInfo: shippingAddress
     };
     
     let savedOrder;
