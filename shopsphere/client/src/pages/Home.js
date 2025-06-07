@@ -204,16 +204,7 @@ const Home = () => {
             <span className="promo-icon">🆕</span>
           </div>
         </div>
-        <div className="promo-banner">
-          <div className="promo-content">
-            <h3>Best Sellers</h3>
-            <p>Our most popular products</p>
-            <Link to="/products?sort=popular" className="promo-button">Shop Now</Link>
-          </div>
-          <div className="promo-image" style={{ backgroundColor: '#d1ecf1' }}>
-            <span className="promo-icon">🏆</span>
-          </div>
-        </div>
+        
       </section>
 
       {/* Features Section */}

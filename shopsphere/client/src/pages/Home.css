@@ -1289,7 +1289,7 @@ a:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--color-primary);
+    
     z-index: -1;
     transition: transform var(--transition-normal);
     transform: scaleX(0);
@@ -1299,6 +1299,7 @@ a:hover {
 .promo-button:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
+    background-color: rgb(241, 172, 104);
 }
 
 .promo-button:hover::before {

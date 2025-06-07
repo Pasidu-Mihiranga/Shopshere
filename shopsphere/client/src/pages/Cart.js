@@ -153,7 +153,7 @@ const Cart = () => {
             <div className="cart-header">
               <div className="cart-col product-col pc">Product</div>
               <div className="cart-col price-col">Price</div>
-              <div className="cart-col quantity-col">Quantity</div>
+              <div className="cart-col quantity-col">QTY</div>
               <div className="cart-col total-col">Total</div>
               <div className="cart-col action-col"></div>
             </div>

@@ -64,20 +64,20 @@ const OrderConfirmation = () => {
   
   // Calculate order summary
   const calculateSummary = () => {
-    const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = order.shipping?.cost || 0;
-    const discount = order.discount || 0;
-    const tax = order.tax || 0;
-    const total = subtotal + shipping + tax - discount;
-    
-    return {
-      subtotal,
-      shipping,
-      discount,
-      tax,
-      total
-    };
+  const subtotal = order.summary?.subtotal || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const shipping = order.summary?.shipping || 0;
+  const discount = order.summary?.discount || 0;
+  const tax = order.summary?.tax || 0;
+  const total = order.summary?.total || (subtotal + shipping + tax - discount);
+  
+  return {
+    subtotal,
+    shipping,
+    discount,
+    tax,
+    total
   };
+};
   
   const summary = calculateSummary();
   
@@ -112,7 +112,7 @@ const OrderConfirmation = () => {
             <div className="info-group">
               <div className="info-label">Payment Method:</div>
               <div className="info-value">
-                {order.payment?.method === 'card' ? 'Credit/Debit Card' : 'PayPal'}
+                Credit/Debit Card
                 {order.payment?.details?.last4 && ` (ending in ${order.payment.details.last4})`}
               </div>
             </div>
@@ -123,29 +123,27 @@ const OrderConfirmation = () => {
           </div>
           
           <div className="order-address">
+            
             <div className="address-section">
               <h3>Shipping Address</h3>
               <div className="address">
-                <p>{order.shipping?.address?.fullName}</p>
-                <p>{order.shipping?.address?.street}</p>
-                <p>{order.shipping?.address?.city}, {order.shipping?.address?.state} {order.shipping?.address?.zipCode}</p>
-                <p>{order.shipping?.address?.country}</p>
-                <p>{order.shipping?.address?.phoneNumber}</p>
+                <p>{order.shippingInfo?.fullName}</p>
+                <p>{order.shippingInfo?.street}</p>
+                <p>{order.shippingInfo?.city}, {order.shippingInfo?.state} {order.shippingInfo?.zipCode}</p>
+                <p>{order.shippingInfo?.country}</p>
+                <p>{order.shippingInfo?.phoneNumber}</p>
+                <p>{order.shippingInfo?.email}</p>
               </div>
             </div>
-            
             <div className="address-section">
               <h3>Billing Address</h3>
               <div className="address">
-                <p>{order.billing?.address?.fullName || order.shipping?.address?.fullName}</p>
-                <p>{order.billing?.address?.street || order.shipping?.address?.street}</p>
-                <p>
-                  {order.billing?.address?.city || order.shipping?.address?.city}, 
-                  {order.billing?.address?.state || order.shipping?.address?.state} 
-                  {order.billing?.address?.zipCode || order.shipping?.address?.zipCode}
-                </p>
-                <p>{order.billing?.address?.country || order.shipping?.address?.country}</p>
-                <p>{order.billing?.address?.phoneNumber || order.shipping?.address?.phoneNumber}</p>
+                <p>{order.shippingInfo?.fullName}</p>
+                <p>{order.shippingInfo?.street}</p>
+                <p>{order.shippingInfo?.city}, {order.shippingInfo?.state} {order.shippingInfo?.zipCode}</p>
+                <p>{order.shippingInfo?.country}</p>
+                <p>{order.shippingInfo?.phoneNumber}</p>
+                <p>{order.shippingInfo?.email}</p>
               </div>
             </div>
           </div>

@@ -18,7 +18,6 @@ import ProductsInfo from './components/ShopOwnerDashboard/ProductManagement';
 import OrderInfo from './components/ShopOwnerDashboard/OrderManagement';
 import ShopSettingsInfo from './components/ShopOwnerDashboard/ShopSettings';
 import CusOrderInfo from './components/CustomerDashboard/Orders';
-import CusAddressesInfo from './components/CustomerDashboard/Addresses';
 import CusWishlistInfo from './components/CustomerDashboard/Wishlist';
 import ContactUs from "./components/ContactUs/contactUs";
 import AboutUs from "./components/AboutUs/AboutUs";
@@ -52,13 +51,7 @@ function App() {
                 
                 
               } />
-              <Route path="dashboard/addresses" element={
-                <ProtectedRoute>
-                  <CusAddressesInfo />
-                </ProtectedRoute>
-                
-                
-              } />
+              
               <Route path="dashboard/wishlist" element={
                 <ProtectedRoute>
                   <CusWishlistInfo />
