@@ -72,12 +72,16 @@ const Header = () => {
         <div className="right-section">
           {/* Cart Icon */}
           <Link to="/cart" className="cart-link">
-            <div className="cart-container">
-              <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
-              {cart.totalItems > 0 && (
-                <span className="cart-badge">{cart.totalItems}</span>
-              )}
+
+            <div  className="cartdiv">
+              <div className="cart-container">
+                <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+                {cart.totalItems > 0 && (
+                  <div className="cart-badge">{cart.totalItems}</div>
+                )}
+              </div>
             </div>
+            
           </Link>
 
           {/* User Menu or Auth Buttons */}
@@ -158,12 +162,15 @@ const Header = () => {
           
           {/* Mobile Cart */}
           <Link to="/cart" className="cart-link mobile-cart">
-            <div className="cart-container">
-              <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
-              {cart.totalItems > 0 && (
-                <span className="cart-badge">{cart.totalItems}</span>
-              )}
+            <div>
+                <div className="cart-container">
+                <img src="/images/Cart.png" alt="Shopping Cart" className="cart-icon" />
+                {cart.totalItems > 0 && (
+                  <div className="cart-badge">{cart.totalItems}</div>
+                )}
+              </div>
             </div>
+            
           </Link>
         </div>
       </div>
