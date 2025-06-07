@@ -151,7 +151,7 @@ const Cart = () => {
         <div className="cart-container">
           <div className="cart-items-container">
             <div className="cart-header">
-              <div className="cart-col product-col">Product</div>
+              <div className="cart-col product-col pc">Product</div>
               <div className="cart-col price-col">Price</div>
               <div className="cart-col quantity-col">Quantity</div>
               <div className="cart-col total-col">Total</div>
@@ -163,8 +163,8 @@ const Cart = () => {
               
               return (
                 <div key={getItemKey(item)} className="cart-item">
-                  <div className="cart-col product-col">
-                    <div className="product-info">
+                  <div className="cart-col product-col ">
+                    <div className="product-info ">
                       <Link to={`/products/${item.productId || item._id}`} className="product-image">
                         <img 
                           src={getImageUrl(item.image)}
@@ -324,48 +324,11 @@ const Cart = () => {
               {!user ? 'Login to Checkout' : 'Proceed to Checkout'}
             </button>
             
-            <div className="security-info">
-              <div className="security-item">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M12 1l8.217 1.826a1 1 0 0 1 .783.976v9.987a6 6 0 0 1-2.672 4.992L12 23l-6.328-4.219A6 6 0 0 1 3 13.79V3.802a1 1 0 0 1 .783-.976L12 1zm0 2.049L5 4.604v9.185a4 4 0 0 0 1.781 3.328L12 20.597l5.219-3.48A4 4 0 0 0 19 13.79V4.604L12 3.05zM10 7h4v2h-4V7zm0 4h4v2h-4v-2z" fill="currentColor"/>
-                </svg>
-                <span>Secure Checkout</span>
-              </div>
-              <div className="security-item">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm1-8h4v2h-6V7h2v5z" fill="currentColor"/>
-                </svg>
-                <span>30-day Returns</span>
-              </div>
-            </div>
           </div>
         </div>
       )}
       
-      {/* Debug Information - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ 
-          position: 'fixed', 
-          bottom: '10px', 
-          right: '10px', 
-          background: 'black', 
-          color: 'white', 
-          padding: '10px', 
-          borderRadius: '5px',
-          fontSize: '12px',
-          maxWidth: '300px',
-          overflow: 'auto',
-          maxHeight: '200px'
-        }}>
-          <strong>Debug Info:</strong><br/>
-          Cart Items Count: {cartItems.length}<br/>
-          Loading: {loading.toString()}<br/>
-          User: {user ? 'Logged in' : 'Guest'}<br/>
-          Cart Total: ${cartSummary.subtotal.toFixed(2)}
-        </div>
-      )}
+      
     </div>
   );
 };
