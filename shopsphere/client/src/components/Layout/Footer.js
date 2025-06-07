@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Footer.css';
@@ -44,9 +45,7 @@ const Footer = () => {
             <h3 className="footer-title">Quick Links</h3>
             <ul className="footer-links">
               <li><Link to="/">Home</Link></li>
-              <li><Link to="/products">Products</Link></li>
-              <li><Link to="/categories">Categories</Link></li>
-              <li><Link to="/flash-sale">Flash Sale</Link></li>
+              {/* <li><Link to="/products">Products</Link></li> */}
               <li><Link to="/about">About Us</Link></li>
               <li><Link to="/contact">Contact</Link></li>
             </ul>
@@ -55,24 +54,19 @@ const Footer = () => {
           <div className="footer-section help">
             <h3 className="footer-title">Help</h3>
             <ul className="footer-links">
-              <li><Link to="/payments">Payments</Link></li>
+              <li><Link to="/payment">Payments</Link></li>
               <li><Link to="/shipping">Shipping</Link></li>
               <li><Link to="/cancellation">Cancellation</Link></li>
-              <li><Link to="/returns">Returns</Link></li>
+              <li><Link to="/return">Returns</Link></li>
               <li><Link to="/faq">FAQ</Link></li>
-              <li><Link to="/track-order">Track Order</Link></li>
             </ul>
           </div>
           
           <div className="footer-section policy">
             <h3 className="footer-title">Consumer Policy</h3>
             <ul className="footer-links">
-              <li><Link to="/terms">Terms of Use</Link></li>
               <li><Link to="/security">Security</Link></li>
               <li><Link to="/privacy">Privacy</Link></li>
-              <li><Link to="/sitemap">Sitemap</Link></li>
-              <li><Link to="/grievance">Grievance Redressal</Link></li>
-              <li><Link to="/epr-compliance">EPR Compliance</Link></li>
             </ul>
           </div>
           
@@ -97,4 +91,5 @@ const Footer = () => {
   );
 };
 
+>>>>>>> 1c6cfac2e814c40d59bf28bdd5f44eea9131f729
 export default Footer;
