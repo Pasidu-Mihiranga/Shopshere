@@ -21,6 +21,13 @@ import CusOrderInfo from './components/CustomerDashboard/Orders';
 import CusWishlistInfo from './components/CustomerDashboard/Wishlist';
 import ContactUs from "./components/ContactUs/contactUs";
 import AboutUs from "./components/AboutUs/AboutUs";
+import FAQ from './components/FooterCommon /FAQ';
+import Shipping from './components/FooterCommon /Shipping';
+import Cancellation from './components/FooterCommon /Cancellation';
+import Returns from './components/FooterCommon /Returns';
+import Payments from './components/FooterCommon /Payments';   
+import Security from './components/FooterCommon /Security';
+import Privacy from './components/FooterCommon /Privacy';
 
 
 function App() {
@@ -92,6 +99,13 @@ function App() {
               } />
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/cancellation" element={<Cancellation />} />
+              <Route path="/returns" element={<Returns />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/privacy" element={<Privacy />} />
             </Route>
           </Routes>
         </BrowserRouter>
