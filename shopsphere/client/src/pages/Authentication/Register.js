@@ -13,6 +13,7 @@ const Register = () => {
     userType: 'customer'
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -28,10 +29,14 @@ const Register = () => {
 
     try {
       const response = await axios.post('http://localhost:5000/api/auth/register', formData);
-      localStorage.setItem('token', response.data.token);
-      navigate(formData.userType === 'customer' ? '/dashboard' : '/seller-dashboard');
+      setSuccess('Registration successful! Redirecting to login...');
+      setError('');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
       setError(error.response?.data?.message || 'Registration failed');
+      setSuccess('');
     }
   };
 
@@ -39,6 +44,7 @@ const Register = () => {
     <div className="register-container">
       <h2>Create an Account</h2>
       {error && <div className="error">{error}</div>}
+      {success && <div className="success">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>First Name</label>
@@ -99,7 +105,7 @@ const Register = () => {
         </div>
         <button type="submit" className="btn-primary">Register</button>
       </form>
-      
+            
       <p>
         Already have an account? <a href="/login">Login</a>
       </p>
