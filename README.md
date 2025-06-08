@@ -51,6 +51,7 @@ Setting Up the Frontend (Client)
    
 
  Starting MongoDB
+ since the storage is locally running when adding the products to the site first you need to go and add some products using a shoper login and then come back as a customer , since the scope of the project timeline we are unable to use mongoDB atlas to host the database on the cloud .
 - Windows:
   on bash - 
   mongod
