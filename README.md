@@ -73,17 +73,7 @@ Setting Up the Frontend (Client)
  Accessing the Application
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
-
-## Project Structure
-
-ShopSphere/
-├── client/          # Frontend React application
-│   ├── public/      # Static files
-│   └── src/         # React components and logic
-└── server/          # Backend Node.js/Express server
-    ├── models/      # MongoDB models
-    ├── routes/      # API routes
-    └── server.js    # Main server file
+<img width="441" alt="Screenshot 2025-06-08 at 23 26 52" src="https://github.com/user-attachments/assets/5fbe7a25-74fe-491b-85f5-df4baec7b23b" />
 
 
 Troubleshooting
@@ -92,3 +82,6 @@ Troubleshooting
 - If dependencies fail to install, try deleting `node_modules` and `package-lock.json` and run `npm install` again
 
 A Video file of this site has been uploaded you can go through the zip file for it 
+
+
+
