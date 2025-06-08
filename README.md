@@ -1,9 +1,9 @@
 # ShopSphere - E-Commerce Platform
 
 ## Project Overview
-ShopSphere is a collaborative e-commerce platform designed and developed by a dedicated team. This project features a React-based frontend (client) and a Node.js/Express backend (server) with MongoDB as the database.
+ShopSphere is a collaborative e-commerce platform designed and developed by our dedicated team. This project features a React-based frontend (client) and a Node.js/Express backend (server) with MongoDB as the database.
 
-*Note: While this project was collaboratively developed by the entire team, GitHub repository maintenance and version control were managed by Ilamperuma P.M. and W M C S Wijekoon.*
+Note: While this project was collaboratively developed by the entire team, GitHub repository maintenance and version control were managed by Ilamperuma P.M. and W M C S Wijekoon.*
 
 Getting Started
 
@@ -13,8 +13,9 @@ Getting Started
 - MongoDB (local instance required)
 
  Installation
-1. Clone or download the project**
-   - If using GitHub: `git clone [repository-url]`
+1. Clone or download the project
+   - If using GitHub: `git clone https://github.com/Pasidu-Mihiranga/Shopshere.git`
+   - make sure you are using the main brach when running the project
    - If using ZIP file: Extract the contents
 
 2. Open the project in your code editor
