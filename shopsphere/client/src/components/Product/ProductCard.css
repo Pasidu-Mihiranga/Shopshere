@@ -1,5 +1,5 @@
 .addcartbtn{
-    background-color: #f77321; /* Blue */
+    background-color: #f77321;
     color: white;
     border: none;
     padding: 12px 24px;
@@ -9,8 +9,7 @@
     width: 150px;
 }
 
-/* ProductCard.css - Mobile Responsive Styles */
-
+ 
 .product-card {
   display: flex;
   flex-direction: column;
@@ -146,9 +145,7 @@
   transform: translateY(0);
 }
 
-/* Mobile Responsive Styles */
 
-/* Extra Small Devices (phones, 576px and down) */
 @media (max-width: 575.98px) {
   .product-card {
     max-width: 100%;
@@ -192,7 +189,6 @@
   }
 }
 
-/* Small Devices (landscape phones, 576px and up) */
 @media (min-width: 576px) and (max-width: 767.98px) {
   .product-card {
     max-width: 100%;
@@ -216,7 +212,6 @@
   }
 }
 
-/* Medium Devices (tablets, 768px and up) */
 @media (min-width: 768px) and (max-width: 991.98px) {
   .product-card {
     max-width: 280px;
@@ -231,7 +226,6 @@
   }
 }
 
-/* Large Devices (desktops, 992px and up) */
 @media (min-width: 992px) {
   .product-card {
     max-width: 300px;
@@ -246,7 +240,6 @@
   }
 }
 
-/* Extra Large Devices (large desktops, 1200px and up) */
 @media (min-width: 1200px) {
   .product-card {
     max-width: 320px;
@@ -269,7 +262,6 @@
   }
 }
 
-/* Grid Layout Helpers (if using in a grid container) */
 @media (max-width: 575.98px) {
   .product-grid {
     display: grid;
@@ -306,7 +298,6 @@
   }
 }
 
-/* Touch Improvements for Mobile */
 @media (hover: none) and (pointer: coarse) {
   .product-card:hover {
     transform: none;
@@ -332,7 +323,6 @@
   }
 }
 
-/* Loading State */
 .product-card.loading {
   opacity: 0.7;
   pointer-events: none;
@@ -353,7 +343,6 @@
   }
 }
 
-/* Accessibility Improvements */
 @media (prefers-reduced-motion: reduce) {
   .product-card,
   .product-image img,
@@ -374,7 +363,6 @@
   }
 }
 
-/* Focus States for Accessibility */
 .product-link:focus {
   outline: 2px solid #f39c12;
   outline-offset: 2px;
@@ -386,7 +374,6 @@
   outline-offset: 2px;
 }
 
-/* High Contrast Mode Support */
 @media (prefers-contrast: high) {
   .product-card {
     border: 2px solid #000;

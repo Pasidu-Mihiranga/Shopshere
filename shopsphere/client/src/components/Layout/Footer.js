@@ -45,7 +45,6 @@ const Footer = () => {
             <h3 className="footer-title">Quick Links</h3>
             <ul className="footer-links">
               <li><Link to="/">Home</Link></li>
-              {/* <li><Link to="/products">Products</Link></li> */}
               <li><Link to="/about">About Us</Link></li>
               <li><Link to="/contact">Contact</Link></li>
             </ul>
@@ -91,5 +90,5 @@ const Footer = () => {
   );
 };
 
->>>>>>> 1c6cfac2e814c40d59bf28bdd5f44eea9131f729
+
 export default Footer;

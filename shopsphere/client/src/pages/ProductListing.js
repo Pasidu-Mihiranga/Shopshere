@@ -1,4 +1,3 @@
-// src/pages/ProductListing.js
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -22,7 +21,7 @@ const ProductListing = () => {
   
   const productsPerPage = 12;
 
-  // Function to fetch products by category (or all products with filters)
+  // Function to fetch products by category 
   const fetchProductsByCategory = async (categoryId) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/products?categories=${categoryId}`);
@@ -87,7 +86,6 @@ const ProductListing = () => {
       
       console.log('🔍 Final API call:', `http://localhost:5000/api/products?${params.toString()}`);
       console.log(`${params.toString()}`);
-      // FIXED: Corrected the API URL - removed typo and used correct endpoint
       const response = await axios.get(`http://localhost:5000/api/products?${params.toString()}`);
       
       setProducts(response.data.products);

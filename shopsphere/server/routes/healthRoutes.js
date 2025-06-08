@@ -1,10 +1,8 @@
-// server/routes/healthRoutes.js
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const path = require('path');
 
-// Add this to healthRoutes.js
 router.get('/', (req, res) => {
   res.json({
     message: 'SHOPSPHERE API - Health & Status',
@@ -19,7 +17,6 @@ router.get('/', (req, res) => {
   });
 });
 
-// Basic health check endpoint
 router.get('/', (req, res) => {
   try {
     console.log('Health check endpoint hit');

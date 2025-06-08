@@ -56,13 +56,11 @@ const OrderConfirmation = () => {
     );
   }
   
-  // Format date
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   
-  // Calculate order summary
   const calculateSummary = () => {
   const subtotal = order.summary?.subtotal || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = order.summary?.shipping || 0;

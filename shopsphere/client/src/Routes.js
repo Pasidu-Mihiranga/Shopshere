@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Authentication/Login';
 import Register from './pages/Authentication/Register';
 
-// Temporary Home component (we'll create the actual one later)
 const Home = () => <div>Home Page</div>;
 
 const AppRoutes = () => {

@@ -174,9 +174,7 @@ const Checkout = () => {
       setProcessingOrder(true);
       setError('');
       
-      // Prepare order data
-      // Prepare order data
-// Prepare order data
+
 // Prepare order data
 const orderData = {
   items: (cart?.items || []).map(item => ({
@@ -218,31 +216,21 @@ const orderData = {
     status: 'pending'
   }
 };
-      // Add this RIGHT BEFORE: const response = await axios.post('http://localhost:5000/api/orders', orderData);
+      
 
 console.log('=== ORDER DATA BEING SENT ===');
 console.log(JSON.stringify(orderData, null, 2));
 console.log('==============================');
       // Create order
       const response = await axios.post('http://localhost:5000/api/orders', orderData);
-      
-      // Process payment (simulate payment processing)
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Clear cart after successful order
-      // if (clearCart) {
-      //   await clearCart();
-      // }
-      
-      // Navigate to order confirmation page
-      // Show success animation instead of navigating immediately
       setOrderResponse(response.data);
       setShowSuccessAnimation(true);
       setProcessingOrder(false);
     } catch (err) {
   console.error('Error placing order:', err);
-  console.error('Full error response:', JSON.stringify(err.response, null, 2)); // CHANGED THIS
-  console.error('Error response data:', JSON.stringify(err.response?.data, null, 2)); // CHANGED THIS
+  console.error('Full error response:', JSON.stringify(err.response, null, 2)); 
+  console.error('Error response data:', JSON.stringify(err.response?.data, null, 2)); 
   console.error('Error status:', err.response?.status);
   setError(err.response?.data?.message || 'Failed to place your order. Please try again.');
   setProcessingOrder(false);
@@ -258,7 +246,6 @@ console.log('==============================');
     );
   }
 
-  // Handle missing cart gracefully
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <div className="checkout-page">

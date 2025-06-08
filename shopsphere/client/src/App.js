@@ -1,4 +1,3 @@
-// src/App.js
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Home from './pages/Home';
@@ -18,7 +17,6 @@ import ProductsInfo from './components/ShopOwnerDashboard/ProductManagement';
 import OrderInfo from './components/ShopOwnerDashboard/OrderManagement';
 import ShopSettingsInfo from './components/ShopOwnerDashboard/ShopSettings';
 import CusOrderInfo from './components/CustomerDashboard/Orders';
-import CusWishlistInfo from './components/CustomerDashboard/Wishlist';
 import ContactUs from "./components/ContactUs/contactUs";
 import AboutUs from "./components/AboutUs/AboutUs";
 import Cancellation from "./components/FooterCommon /Cancellation";
@@ -58,13 +56,7 @@ function App() {
                 
               } />
               
-              <Route path="dashboard/wishlist" element={
-                <ProtectedRoute>
-                  <CusWishlistInfo />
-                </ProtectedRoute>
-                
-                
-              } />
+              
               
               <Route path="seller-dashboard" element={
                <ProtectedRoute>

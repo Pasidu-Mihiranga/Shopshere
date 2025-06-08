@@ -26,17 +26,15 @@ const ProductManagement = () => {
     isPromoted: false
   });
 
-  // API base URL
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  // Check authentication on component mount
   useEffect(() => {
     console.log('🔍 ProductManagement: Checking authentication...');
     
     const auth = authUtils.getAuth();
     
     if (!auth) {
-      console.log('❌ No authentication found');
+      console.log(' No authentication found');
       setError('Please login to access product management');
       setAuthChecking(false);
       setLoading(false);
@@ -44,16 +42,15 @@ const ProductManagement = () => {
     }
     
     if (auth.user.userType !== 'shop_owner') {
-      console.log('❌ User is not a shop owner:', auth.user.userType);
+      console.log(' User is not a shop owner:', auth.user.userType);
       setError('Access denied. Shop owner role required.');
       setAuthChecking(false);
       setLoading(false);
       return;
     }
     
-    console.log('✅ Authentication verified for shop owner:', auth.user.email);
+    console.log(' Authentication verified for shop owner:', auth.user.email);
     
-    // Setup axios interceptor
     authUtils.setupAxiosInterceptor();
     
     setAuthChecking(false);
@@ -64,7 +61,7 @@ const ProductManagement = () => {
     try {
       setLoading(true);
       setError('');
-      console.log('🔄 Fetching shop data...');
+      console.log(' Fetching shop data...');
       
       const auth = authUtils.getAuth();
       if (!auth) {
@@ -77,19 +74,17 @@ const ProductManagement = () => {
         }
       };
 
-      // Updated API endpoints to match the new routes
       const [productsResponse, categoriesResponse, shopResponse] = await Promise.all([
-        axios.get(`${API_BASE}/api/products/shop/products`, config), // Updated endpoint
+        axios.get(`${API_BASE}/api/products/shop/products`, config),
         axios.get(`${API_BASE}/api/categories`),
         axios.get(`${API_BASE}/api/shop/info`, config)
       ]);
       
-      console.log('✅ Data fetched successfully');
+      console.log(' Data fetched successfully');
       console.log('Products response:', productsResponse.data);
       console.log('Categories response:', categoriesResponse.data);
       console.log('Shop response:', shopResponse.data);
       
-      // Handle the responses properly - check multiple possible data structures
       const productsData = productsResponse.data?.products || productsResponse.data || [];
       const categoriesData = categoriesResponse.data?.categories || categoriesResponse.data || [];
       const shopData = shopResponse.data?.shop || shopResponse.data || null;
@@ -98,15 +93,15 @@ const ProductManagement = () => {
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       setShopInfo(shopData);
       
-      console.log('📦 Products loaded:', productsData.length);
-      console.log('📚 Categories loaded:', categoriesData.length);
-      console.log('🏪 Shop:', shopData?.shopName);
+      console.log(' Products loaded:', productsData.length);
+      console.log('Categories loaded:', categoriesData.length);
+      console.log(' Shop:', shopData?.shopName);
       
     } catch (error) {
-      console.error('❌ Error fetching data:', error);
+      console.error(' Error fetching data:', error);
       
       if (error.response?.status === 401) {
-        console.log('❌ Token expired, clearing auth');
+        console.log(' Token expired, clearing auth');
         authUtils.clearAuth();
         setError('Session expired. Please login again.');
         setTimeout(() => {
@@ -207,10 +202,10 @@ const ProductManagement = () => {
       // Append images if any
       selectedImages.forEach((image, index) => {
         productData.append('images', image);
-        console.log(`📷 Appending image ${index + 1}:`, image.name);
+        console.log(` Appending image ${index + 1}:`, image.name);
       });
 
-      console.log('📤 Sending product data...');
+      console.log('Sending product data...');
 
       const config = {
         headers: {
@@ -221,8 +216,8 @@ const ProductManagement = () => {
 
       let response;
       if (currentProduct) {
-        // Update existing product - Updated endpoint
-        console.log('🔄 Updating product:', currentProduct._id);
+        // Update existing product
+        console.log(' Updating product:', currentProduct._id);
         response = await axios.put(`${API_BASE}/api/products/${currentProduct._id}`, productData, config);
         setSuccessMessage('Product updated successfully!');
         
@@ -231,8 +226,8 @@ const ProductManagement = () => {
           product._id === currentProduct._id ? (response.data.product || response.data) : product
         ));
       } else {
-        // Create new product - Updated endpoint
-        console.log('➕ Creating new product...');
+        // Create new product 
+        console.log(' Creating new product...');
         response = await axios.post(`${API_BASE}/api/products`, productData, config);
         setSuccessMessage('Product created successfully!');
         
@@ -312,7 +307,7 @@ const ProductManagement = () => {
         }
       };
 
-      // Updated endpoint for delete
+      
       await axios.delete(`${API_BASE}/api/products/${productId}`, config);
       
       setProducts(products.filter(product => product._id !== productId));
@@ -321,7 +316,7 @@ const ProductManagement = () => {
       setTimeout(() => setSuccessMessage(''), 3000);
 
     } catch (error) {
-      console.error('❌ Error deleting product:', error);
+      console.error(' Error deleting product:', error);
       setError(error.response?.data?.message || 'Failed to delete product');
     }
   };
@@ -342,18 +337,15 @@ const ProductManagement = () => {
     setImagePreview([]);
     setShowForm(false);
     
-    // Clear image preview URLs to prevent memory leaks
     imagePreview.forEach(url => URL.revokeObjectURL(url));
   };
 
-  // Cleanup image preview URLs on unmount
   useEffect(() => {
     return () => {
       imagePreview.forEach(url => URL.revokeObjectURL(url));
     };
   }, [imagePreview]);
 
-  // Show authentication checking
   if (authChecking) {
     return (
       <div style={{ 
@@ -383,7 +375,6 @@ const ProductManagement = () => {
     );
   }
 
-  // Show login required screen
   if (!authUtils.isAuthenticated() || !authUtils.hasRole('shop_owner')) {
     return (
       <div style={{ 
@@ -423,7 +414,6 @@ const ProductManagement = () => {
           Go to Login
         </button>
         
-        {/* Debug info for development */}
         {process.env.NODE_ENV === 'development' && (
           <div style={{
             marginTop: '40px',
@@ -522,7 +512,7 @@ const ProductManagement = () => {
           borderRadius: '5px',
           border: '1px solid #c3e6cb'
         }}>
-          ✅ {successMessage}
+           {successMessage}
         </div>
       )}
 
@@ -536,7 +526,7 @@ const ProductManagement = () => {
           borderRadius: '5px',
           border: '1px solid #f5c6cb'
         }}>
-          ❌ {error}
+           {error}
         </div>
       )}
 
@@ -760,15 +750,7 @@ const ProductManagement = () => {
                 />
                 <span>Active Product</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  name="isPromoted"
-                  checked={formData.isPromoted}
-                  onChange={handleChange}
-                />
-                <span>Featured/Promoted</span>
-              </label>
+              
             </div>
 
             {/* Form Buttons */}
@@ -974,7 +956,7 @@ const ProductManagement = () => {
               fontSize: '14px'
             }}
           >
-            🔄 Refresh Data
+             Refresh Data
           </button>
           
           <button
@@ -990,7 +972,7 @@ const ProductManagement = () => {
               fontSize: '14px'
             }}
           >
-            ➕ Add Product
+             Add Product
           </button>
           
           <button
@@ -1009,7 +991,7 @@ const ProductManagement = () => {
               fontSize: '14px'
             }}
           >
-            🚪 Logout
+             Logout
           </button>
         </div>
       </div>

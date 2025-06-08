@@ -22,7 +22,7 @@ const Home = () => {
         // Fetch all data in parallel
         const [flashSaleRes, featuredRes, categoriesRes] = await Promise.all([
           axios.get('/api/products?isPromoted=true&limit=4'),
-          axios.get('/api/products?limit=8'), // Changed: removed sort=popular to get all products, increased limit
+          axios.get('/api/products?limit=8'), 
           axios.get('/api/categories?limit=5')
         ]);
 
@@ -65,7 +65,7 @@ const Home = () => {
 
   // Format currency
   const formatPrice = (price) => {
-    return `$${price.toFixed(2)}`;
+    return `${price.toFixed(2)}`;
   };
 
   // Calculate discount percentage
@@ -84,40 +84,51 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      {/* Hero Banner */}
       <FlashSaleAd/>
       
       {/* Categories Section */}
-      <section className="categories-section">
+      <section className="category-showcase">
         <div className="section-header">
           <h2>Explore Popular Categories</h2>
           <Link to="/categories" className="view-all">View All</Link>
         </div>
-        <div className="categories-grid">
+        <div className="category-grid-container">
           {categories.map(category => (
             <Link 
               key={category._id} 
               to={`/products?category=${category._id}`}
-              className="category-card"
+              className="category-square-card"
             >
-              <div className="category-icon">
+              <div className="category-square-icon">
                 {category.name === 'Electronics' && (
-                  <span className="icon-electronics">📱</span>
+                  <span className="icon-electronics">
+                    <img src="/images/Electronics.png" alt="Electronics" className="shopsphere-logo" />
+                  </span>
                 )}
                 {category.name === 'Clothing' && (
-                  <span className="icon-clothing">👕</span>
+                  <span className="icon-clothing">
+                    <img src="/images/Clothing.png" alt="Clothing" className="shopsphere-logo" />
+                  </span>
                 )}
                 {category.name === 'Books' && (
-                  <span className="icon-books">📚</span>
+                  <span className="icon-books">
+                    <img src="/images/Books.png" alt="Books" className="shopsphere-logo" />
+                  </span>
                 )}
                 {category.name === 'Home & Garden' && (
-                  <span className="icon-home-garden">🏡</span>
+                  <span className="icon-home-garden">
+                    <img src="/images/HomeandGarden.png" alt="H&G" className="shopsphere-logo" />
+                  </span>
                 )}
                 {category.name === 'Sports' && (
-                  <span className="icon-sports">⚽</span>
+                  <span className="icon-sports">
+                    <img src="/images/Sports.png" alt="Sports" className="shopsphere-logo" />
+                  </span>
                 )}
                 {!['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports'].includes(category.name) && (
-                  <span className="icon-general">🛍️</span>
+                  <span className="icon-general">
+                    <img src="/images/General.png" alt="General" className="shopsphere-logo" />
+                  </span>
                 )}
               </div>
               <h3>{category.name}</h3>
@@ -152,14 +163,14 @@ const Home = () => {
         )}
         
         {!productsLoading && !productsError && featuredProducts.length > 0 && (
-          <div className="home-products-grid">
+          <div className="products-showcase-grid">
             {featuredProducts.map(product => (
               <Link 
                 key={product._id} 
                 to={`/products/${product._id}`}
-                className="home-product-card"
+                className="product-showcase-card"
               >
-                <div className="home-product-image">
+                <div className="product-showcase-image">
                   <img 
                     src={product.images && product.images.length > 0 
                       ? product.images[0] 
@@ -167,25 +178,25 @@ const Home = () => {
                     alt={product.name} 
                   />
                   {product.salePrice && (
-                    <span className="home-discount-badge">
+                    <span className="product-discount-badge">
                       {calculateDiscount(product.price, product.salePrice)}% OFF
                     </span>
                   )}
                 </div>
-                <div className="home-product-info">
-                  <h3 className="home-product-name">{product.name}</h3>
-                  <div className="home-product-price">
+                <div className="product-showcase-info">
+                  <h3 className="product-showcase-name">{product.name}</h3>
+                  <div className="product-showcase-price">
                     {product.salePrice ? (
                       <>
-                        <span className="home-sale-price">{formatPrice(product.salePrice)}</span>
-                        <span className="home-original-price">{formatPrice(product.price)}</span>
+                        <span className="product-sale-price">{formatPrice(product.salePrice)}</span>
+                        <span className="product-original-price">{formatPrice(product.price)}</span>
                       </>
                     ) : (
-                      <span className="home-regular-price">{formatPrice(product.price)}</span>
+                      <span className="product-regular-price">{formatPrice(product.price)}</span>
                     )}
                   </div>
                 </div>
-                <button className="home-add-to-cart">Add to Cart</button>
+                <button className="product-add-to-cart-btn">Add to Cart</button>
               </Link>
             ))}
           </div>
@@ -201,31 +212,40 @@ const Home = () => {
             <Link to="/products?sort=newest" className="promo-button">Shop Now</Link>
           </div>
           <div className="promo-image" style={{ backgroundColor: '#f8d7da' }}>
-            <span className="promo-icon">🆕</span>
+            <span className="promo-icon">
+              <img src="/images/Newarrivals.png" alt="NewArrivals" className="shopsphere-logo" />
+            </span>
           </div>
         </div>
-        
       </section>
 
       {/* Features Section */}
       <section className="features-section">
         <div className="feature">
-          <div className="feature-icon">🚚</div>
+          <div className="feature-icon">
+            <img src="/images/FreeShipping.png" alt="Freeshipping"  />
+          </div>
           <h3>Free Shipping</h3>
           <p>On orders over $50</p>
         </div>
         <div className="feature">
-          <div className="feature-icon">🔄</div>
+          <div className="feature-icon">
+            <img src="/images/EasyReturns.png" alt="EasyReturns"  />
+          </div>
           <h3>Easy Returns</h3>
           <p>30-day return policy</p>
         </div>
         <div className="feature">
-          <div className="feature-icon">🔒</div>
+          <div className="feature-icon">
+            <img src="/images/SecurePayment.png" alt="SecurePayment"  />
+          </div>
           <h3>Secure Payment</h3>
           <p>100% secure checkout</p>
         </div>
         <div className="feature">
-          <div className="feature-icon">💬</div>
+          <div className="feature-icon">
+            <img src="/images/Support.png" alt="Support" />
+          </div>
           <h3>24/7 Support</h3>
           <p>We're here to help</p>
         </div>

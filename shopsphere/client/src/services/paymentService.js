@@ -1,4 +1,3 @@
-// src/services/paymentService.js
 import axios from 'axios';
 
 export const createPaymentIntent = async (amount, currency = 'usd') => {

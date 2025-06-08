@@ -1,6 +1,4 @@
-/* Enhanced Cart.css - Beautiful Light Theme with Orange */
 
-/* CSS Variables for consistent theming */
 :root {
   --primary-orange: #FF6B35;
   --primary-orange-hover: #E55A2B;
@@ -40,7 +38,6 @@
   --transition-smooth: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Base Styles */
 .cart-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--neutral-50) 0%, var(--light-orange) 100%);
@@ -48,7 +45,6 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* Loading Container */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -79,7 +75,6 @@
   font-weight: 500;
 }
 
-/* Page Header */
 .page-header {
   text-align: center;
   margin-bottom: 3rem;
@@ -111,7 +106,6 @@
   letter-spacing: -0.02em;
 }
 
-/* Empty Cart */
 .empty-cart {
   display: flex;
   flex-direction: column;
@@ -213,7 +207,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* Cart Container */
 .cart-container {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -222,7 +215,6 @@
   margin: 0 auto;
 }
 
-/* Cart Items Container */
 .cart-items-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: var(--border-radius-xl);
@@ -297,7 +289,6 @@
   border-bottom: none;
 }
 
-/* Product Info */
 .product-info {
   display: flex;
   align-items: center;
@@ -384,14 +375,12 @@
   font-weight: 500;
 }
 
-/* Price Display */
 .price-value {
   font-weight: 700;
   color: var(--primary-orange);
   font-size: 1.1rem;
 }
 
-/* Quantity Selector */
 .quantity-selector {
   display: flex;
   align-items: center;
@@ -451,14 +440,12 @@
   outline: none;
 }
 
-/* Total Display */
 .total-value {
   font-weight: 700;
   color: var(--neutral-800);
   font-size: 1.2rem;
 }
 
-/* Remove Item Button */
 .remove-item-btn {
   background: var(--error-light);
   border: 2px solid var(--error-color);
@@ -479,7 +466,6 @@
   transform: scale(1.1);
 }
 
-/* Cart Actions */
 .cart-actions {
   display: flex;
   justify-content: space-between;
@@ -522,7 +508,6 @@
   transform: translateX(-5px);
 }
 
-/* Cart Summary */
 .cart-summary {
   background: rgba(255, 255, 255, 0.95);
   border-radius: var(--border-radius-xl);
@@ -640,7 +625,6 @@
   font-weight: 700;
 }
 
-/* Checkout Button */
 .checkout-btn {
   width: 100%;
   background: linear-gradient(135deg, var(--primary-orange), var(--accent-orange)); 
@@ -707,7 +691,6 @@
   color: var(--success-color);
 }
 
-/* Responsive Design */
 @media (max-width: 1300px) {
   .cart-container {
     max-width: 100%;

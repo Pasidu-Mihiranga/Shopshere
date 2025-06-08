@@ -371,7 +371,6 @@
     100% { transform: rotate(360deg); }
   }
   
-  /* Responsive Design */
   @media (max-width: 992px) {
     .dashboard-container {
       grid-template-columns: 1fr;

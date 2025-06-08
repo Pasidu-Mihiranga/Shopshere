@@ -1,7 +1,4 @@
-// storage.js
-// Local storage wrapper with expiration support
 
-// Set item with optional expiration
 export const setItem = (key, value, expirationMinutes = null) => {
     const item = {
       value: value,
@@ -9,13 +6,12 @@ export const setItem = (key, value, expirationMinutes = null) => {
     };
     
     if (expirationMinutes) {
-      item.expiration = expirationMinutes * 60 * 1000; // Convert to milliseconds
+      item.expiration = expirationMinutes * 60 * 1000; 
     }
     
     localStorage.setItem(key, JSON.stringify(item));
   };
   
-  // Get item and check expiration
   export const getItem = (key) => {
     const itemStr = localStorage.getItem(key);
     
@@ -27,7 +23,6 @@ export const setItem = (key, value, expirationMinutes = null) => {
       const item = JSON.parse(itemStr);
       const now = new Date().getTime();
       
-      // Check if the item is expired
       if (item.expiration && now - item.timestamp > item.expiration) {
         localStorage.removeItem(key);
         return null;
@@ -35,43 +30,36 @@ export const setItem = (key, value, expirationMinutes = null) => {
       
       return item.value;
     } catch (e) {
-      // If parsing fails, return the raw value (backwards compatibility)
       return itemStr;
     }
   };
   
-  // Remove item
   export const removeItem = (key) => {
     localStorage.removeItem(key);
   };
   
-  // Clear all items
   export const clear = () => {
     localStorage.clear();
   };
   
-  // Get all keys
   export const getAllKeys = () => {
     return Object.keys(localStorage);
   };
   
-  // Check if key exists
   export const hasKey = (key) => {
     return localStorage.getItem(key) !== null;
   };
   
-  // Get storage used in bytes
   export const getStorageUsage = () => {
     let total = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       const value = localStorage.getItem(key);
-      total += (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
+      total += (key.length + value.length) * 2; 
     }
     return total;
   };
   
-  // Session storage variants
   export const session = {
     setItem: (key, value) => {
       sessionStorage.setItem(key, JSON.stringify({ value }));
@@ -98,7 +86,6 @@ export const setItem = (key, value, expirationMinutes = null) => {
     }
   };
   
-  // Cookie utilities
   export const cookies = {
     set: (name, value, days = 7, path = '/') => {
       const expires = new Date(Date.now() + days * 864e5).toUTCString();

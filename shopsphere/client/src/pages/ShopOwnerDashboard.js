@@ -1,4 +1,3 @@
-// src/pages/ShopOwnerDashboard.js
 import React, { useState, useEffect } from 'react';
 import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -98,8 +97,7 @@ const ShopOwnerDashboard = () => {
         setError('');
       } catch (err) {
         console.error('Error fetching shop data:', err);
-        // Don't show error for optional data
-        // setError('Failed to load some shop data');
+      
       } finally {
         setStatsLoading(false);
       }

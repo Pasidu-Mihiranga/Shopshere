@@ -12,7 +12,6 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Handle search submit
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -21,14 +20,12 @@ const Header = () => {
     }
   };
 
-  // Handle logout
   const handleLogout = () => {
     logout();
     navigate('/');
     setDropdownOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownOpen && !event.target.closest('.shopsphere-user-menu')) {
@@ -45,14 +42,12 @@ const Header = () => {
   return (
     <header className="shopsphere-header">
       <div className="shopsphere-header-container">
-        {/* Logo Section */}
         <div className="shopsphere-logo-section">
           <Link to="/" className="shopsphere-logo-link">
             <img src="/images/Logo.png" alt="SHOPSPHERE" className="shopsphere-logo" />
           </Link>
         </div>
 
-        {/* Desktop Search Section */}
         <div className="shopsphere-search-section shopsphere-desktop-search">
           <form onSubmit={handleSearchSubmit} className="shopsphere-search-form">
             <input 
@@ -68,9 +63,7 @@ const Header = () => {
           </form>
         </div>
 
-        {/* Right Section - Cart and Auth */}
         <div className="shopsphere-right-section">
-          {/* Cart Icon */}
           <Link to="/cart" className="shopsphere-cart-link">
 
             <div  className="shopsphere-cartdiv">
@@ -84,7 +77,6 @@ const Header = () => {
             
           </Link>
 
-          {/* User Menu or Auth Buttons */}
           {user ? (
             <div className="shopsphere-user-menu">
               <button 
@@ -111,20 +103,17 @@ const Header = () => {
                 >
                   Dashboard
                 </Link>
-                <Link 
-                  to="/profile" 
-                  className="shopsphere-dropdown-item"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  Profile
-                </Link>
-                <Link 
-                  to="/orders" 
-                  className="shopsphere-dropdown-item"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  Orders
-                </Link>
+                
+                {user.userType === 'customer' && (
+                  <Link 
+                    to="/dashboard/orders" 
+                    className="shopsphere-dropdown-item"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    Orders
+                  </Link>
+                )}
+                
                 <button 
                   onClick={handleLogout} 
                   className="shopsphere-dropdown-item shopsphere-logout-button"
@@ -145,7 +134,6 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile Search Section */}
         <div className="shopsphere-search-section shopsphere-mobile-search">
           <form onSubmit={handleSearchSubmit} className="shopsphere-search-form">
             <input 
@@ -160,7 +148,6 @@ const Header = () => {
             </button>
           </form>
           
-          {/* Mobile Cart */}
           <Link to="/cart" className="shopsphere-cart-link shopsphere-mobile-cart">
             <div>
                 <div className="shopsphere-cart-container">

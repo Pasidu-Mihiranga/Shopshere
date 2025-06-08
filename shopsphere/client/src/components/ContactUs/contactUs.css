@@ -1,4 +1,3 @@
-/* ContactUs.css - Enhanced with visual appeal */
 :root {
   --primary-color: #f26e21;
   --primary-dark: #e05c14;
@@ -18,7 +17,6 @@
   overflow: hidden;
 }
 
-/* Decorative elements */
 .contact-section::before {
   content: "";
   position: absolute;
@@ -292,7 +290,6 @@
   }
 }
 
-/* Social media icons */
 .social-links {
   display: flex;
   justify-content: center;
@@ -320,7 +317,6 @@
   box-shadow: 0 6px 15px rgba(242, 110, 33, 0.3);
 }
 
-/* Map placeholder */
 .map-container {
   grid-column: span 2;
   height: 300px;
@@ -343,7 +339,6 @@
   font-size: 1.2rem;
 }
 
-/* Responsive adjustments */
 @media (min-width: 768px) {
   .contact-section {
     display: grid;
@@ -375,7 +370,6 @@
   }
 }
 
-/* Animation for page load */
 @keyframes fadeInUp {
   from {
     opacity: 0;

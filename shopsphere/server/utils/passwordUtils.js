@@ -1,4 +1,3 @@
-// server/utils/passwordUtils.js
 const bcrypt = require('bcryptjs');
 
 // Hash password

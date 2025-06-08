@@ -1,7 +1,7 @@
-// src/pages/Authentication/Register.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './Register.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +10,7 @@ const Register = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    userType: 'customer' // default to customer
+    userType: 'customer'
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();

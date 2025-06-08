@@ -13,7 +13,7 @@ const cartSchema = new mongoose.Schema({
       required: true
     },
     shopId: {
-      type: String,  // ✅ KEEP THIS AS STRING
+      type: String,  
       required: true
     },
     name: String,

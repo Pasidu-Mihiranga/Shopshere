@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext'; // ✅ Added this import
+import { useAuth } from '../contexts/AuthContext'; 
 import './ProductDetail.css';
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { user } = useAuth(); // ✅ Added this to get user state
+  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -48,7 +48,7 @@ const ProductDetail = () => {
 
         const productData = productResponse.data.product;
 
-        // ✅ Access data directly from API response, not from state
+        //Access data directly from API response, not from state
         console.log('Product name from API response:', productData.name);
         console.log('Product description from API response:', productData.description);
         console.log('Product price from API response:', productData.price);
@@ -57,7 +57,7 @@ const ProductDetail = () => {
         // Set product state
         setProduct(productData);
 
-        // Initialize selected attributes using productData (not product state)
+        // Initialize selected attributes using productData 
         if (productData.attributes && Object.keys(productData.attributes).length > 0) {
           const initialAttributes = {};
           Object.entries(productData.attributes).forEach(([key, value]) => {
@@ -88,7 +88,6 @@ const ProductDetail = () => {
             setRelatedProducts(relatedResponse.data.products || []);
           } catch (relatedErr) {
             console.error('Error fetching related products:', relatedErr);
-            // Don't set error state for related products failure
           }
         }
 
@@ -152,7 +151,7 @@ const ProductDetail = () => {
         productId: product._id,
         quantity,
         attributes: selectedAttributes,
-        user: user ? 'authenticated' : 'guest' // ✅ Now user is properly imported
+        user: user ? 'authenticated' : 'guest'
       });
 
       // Call the addToCart function from context
@@ -160,12 +159,6 @@ const ProductDetail = () => {
       
       console.log('Successfully added to cart');
       
-      // Optional: Show success message
-      // You can replace this with a toast notification
-      alert(`${product.name} added to cart successfully!`);
-      
-      // Optional: Reset quantity to 1 after adding
-      // setQuantity(1);
       
     } catch (error) {
       console.error('Error adding to cart:', error);

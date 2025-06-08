@@ -1,4 +1,4 @@
-/* Button.scss */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -71,7 +71,7 @@
     }
   }
   
-  /* Sizes */
+
   &.btn-small {
     font-size: var(--font-size-sm);
     padding: 0.375rem 0.75rem;
@@ -87,18 +87,17 @@
     padding: 0.75rem 1.5rem;
   }
   
-  /* Full width */
+  
   &.btn-full-width {
     width: 100%;
   }
   
-  /* Icon styles */
+  
   .btn-icon {
     margin-right: 0.5rem;
   }
 }
 
-/* Button group styles */
 .btn-group {
   display: flex;
   
@@ -121,7 +120,7 @@
   }
 }
 
-/* Card.scss */
+
 .card {
   background-color: white;
   border-radius: 8px;
@@ -154,7 +153,7 @@
     background-color: var(--light-gray);
   }
   
-  /* Card variants */
+  
   &.card-flat {
     box-shadow: none;
     border: 1px solid var(--border-light);

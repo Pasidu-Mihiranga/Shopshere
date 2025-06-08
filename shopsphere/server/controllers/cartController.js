@@ -1,4 +1,3 @@
-// server/controllers/cartController.js
 const Cart = require('../models/Cart');
 const mongoose = require('mongoose');
 
@@ -7,7 +6,7 @@ const Shop = mongoose.model('Shop');
 
 // Get user cart
 exports.getCart = async (req, res) => {
-  console.log('✅ Get cart controller accessed');
+  console.log(' Get cart controller accessed');
   
   try {
     let cart = await Cart.findOne({ userId: req.user._id });
@@ -40,7 +39,7 @@ exports.getCart = async (req, res) => {
 
 // Add item to cart
 exports.addItem = async (req, res) => {
-  console.log('✅ Add to cart controller accessed');
+  console.log(' Add to cart controller accessed');
   console.log('Cart item data:', req.body);
   
   try {
@@ -139,7 +138,7 @@ exports.addItem = async (req, res) => {
 
 // Update item quantity
 exports.updateItem = async (req, res) => {
-  console.log('✅ Update cart item controller accessed');
+  console.log(' Update cart item controller accessed');
   
   try {
     const { productId } = req.params;
@@ -200,7 +199,7 @@ exports.updateItem = async (req, res) => {
 
 // Remove item from cart
 exports.removeItem = async (req, res) => {
-  console.log('✅ Remove cart item controller accessed');
+  console.log('Remove cart item controller accessed');
   
   try {
     const { productId } = req.params;
@@ -247,7 +246,7 @@ exports.removeItem = async (req, res) => {
 
 // Clear cart
 exports.clearCart = async (req, res) => {
-  console.log('✅ Clear cart controller accessed');
+  console.log(' Clear cart controller accessed');
   
   try {
     const cart = await Cart.findOneAndUpdate(
@@ -278,7 +277,7 @@ exports.clearCart = async (req, res) => {
 
 // Apply discount
 exports.applyDiscount = async (req, res) => {
-  console.log('✅ Apply discount controller accessed');
+  console.log(' Apply discount controller accessed');
   
   try {
     const { code } = req.body;

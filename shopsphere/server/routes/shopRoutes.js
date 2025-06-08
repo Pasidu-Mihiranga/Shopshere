@@ -1,4 +1,3 @@
-// server/routes/shopRoutes.js
 const express = require('express');
 const router = express.Router();
 const Shop = require('../models/Shop');
@@ -10,12 +9,12 @@ router.use(authMiddleware.authenticate);
 // Get shop info for current user
 router.get('/info', async (req, res) => {
   try {
-    console.log('🏪 Fetching shop info for user:', req.user._id);
+    console.log('Fetching shop info for user:', req.user._id);
     
     let shop = await Shop.findOne({ ownerId: req.user._id });
     
     if (!shop) {
-      console.log('🏪 No shop found, creating default shop...');
+      console.log(' No shop found, creating default shop...');
       // Create a basic shop if it doesn't exist
       shop = new Shop({
         ownerId: req.user._id,
@@ -30,7 +29,7 @@ router.get('/info', async (req, res) => {
       });
       
       await shop.save();
-      console.log('✅ Default shop created:', shop._id);
+      console.log(' Default shop created:', shop._id);
     }
 
     res.json({
@@ -39,7 +38,7 @@ router.get('/info', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Error fetching shop info:', error);
+    console.error(' Error fetching shop info:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch shop information',
@@ -85,7 +84,7 @@ router.put('/info', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Error updating shop:', error);
+    console.error(' Error updating shop:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update shop information'
@@ -120,7 +119,7 @@ router.get('/stats', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Error fetching shop stats:', error);
+    console.error(' Error fetching shop stats:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch shop statistics'

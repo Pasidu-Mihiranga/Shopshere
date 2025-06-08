@@ -1,4 +1,3 @@
-/* Rating.scss */
 .rating {
     display: inline-flex;
     align-items: center;
@@ -6,11 +5,11 @@
     .star {
       display: inline-block;
       position: relative;
-      color: #ddd; /* Empty star color */
+      color: #ddd; 
       cursor: default;
       
       &.star-full {
-        color: #FFB400; /* Full star color */
+        color: #FFB400; 
       }
       
       &.star-half:after {
@@ -24,11 +23,10 @@
       }
       
       &.star-hover {
-        color: #FFD700; /* Hover star color */
+        color: #FFD700; 
       }
     }
     
-    /* Rating sizes */
     &.rating-small {
       font-size: 1rem;
       
@@ -53,7 +51,6 @@
       }
     }
     
-    /* Editable rating */
     &.rating-editable {
       .star {
         cursor: pointer;

@@ -1,4 +1,3 @@
-// server/controllers/paymentController.js
 exports.createPaymentIntent = async (req, res) => {
   try {
     res.status(200).json({

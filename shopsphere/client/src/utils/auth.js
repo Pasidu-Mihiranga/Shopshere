@@ -1,4 +1,3 @@
-// src/utils/auth.js
 import axios from 'axios';
 
 export const AUTH_STORAGE_KEY = 'shopsphere_auth';
@@ -7,7 +6,7 @@ export const authUtils = {
   // Save authentication data
   saveAuth: (token, user) => {
     try {
-      console.log('💾 Saving auth data:', { userEmail: user.email, userType: user.userType });
+      console.log(' Saving auth data:', { userEmail: user.email, userType: user.userType });
       
       // Set expiration to 30 days (much longer than before)
       const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
@@ -28,10 +27,10 @@ export const authUtils = {
       // Set axios default header immediately
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      console.log('✅ Auth data saved successfully with 30-day expiration');
+      console.log(' Auth data saved successfully with 30-day expiration');
       return true;
     } catch (error) {
-      console.error('❌ Error saving auth data:', error);
+      console.error(' Error saving auth data:', error);
       return false;
     }
   },
@@ -44,7 +43,7 @@ export const authUtils = {
       const authDataStr = localStorage.getItem(AUTH_STORAGE_KEY);
       
       if (!token || !userStr) {
-        console.log('❌ No token or user data found');
+        console.log(' No token or user data found');
         return null;
       }
       
@@ -59,7 +58,7 @@ export const authUtils = {
         const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
         
         if (authData.expiresAt && currentTime > (authData.expiresAt - bufferTime)) {
-          console.log('❌ Token expired or about to expire, clearing auth data');
+          console.log(' Token expired or about to expire, clearing auth data');
           authUtils.clearAuth();
           return null;
         }
@@ -69,7 +68,7 @@ export const authUtils = {
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
       }
       
-      console.log('✅ Auth data retrieved:', { 
+      console.log(' Auth data retrieved:', { 
         userEmail: user.email, 
         userType: user.userType,
         daysUntilExpiry: authData ? Math.round((authData.expiresAt - Date.now()) / (24 * 60 * 60 * 1000)) : 'unknown'
@@ -77,7 +76,7 @@ export const authUtils = {
       
       return { token, user, authData };
     } catch (error) {
-      console.error('❌ Error getting auth data:', error);
+      console.error(' Error getting auth data:', error);
       authUtils.clearAuth();
       return null;
     }
@@ -86,7 +85,7 @@ export const authUtils = {
   // Clear authentication data
   clearAuth: () => {
     try {
-      console.log('🗑️ Clearing auth data');
+      console.log(' Clearing auth data');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -94,10 +93,10 @@ export const authUtils = {
       // Remove axios default header
       delete axios.defaults.headers.common['Authorization'];
       
-      console.log('✅ Auth data cleared');
+      console.log(' Auth data cleared');
       return true;
     } catch (error) {
-      console.error('❌ Error clearing auth data:', error);
+      console.error(' Error clearing auth data:', error);
       return false;
     }
   },
@@ -114,7 +113,7 @@ export const authUtils = {
   hasRole: (requiredRole) => {
     const auth = authUtils.getAuth();
     if (!auth) {
-      console.log('❌ No auth data for role check');
+      console.log(' No auth data for role check');
       return false;
     }
     
@@ -128,10 +127,10 @@ export const authUtils = {
     const auth = authUtils.getAuth();
     if (auth) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${auth.token}`;
-      console.log('🔐 Axios interceptor setup with token');
+      console.log(' Axios interceptor setup with token');
       return true;
     } else {
-      console.log('❌ No auth data available for axios setup');
+      console.log(' No auth data available for axios setup');
       return false;
     }
   },
@@ -157,7 +156,7 @@ export const authUtils = {
     try {
       const auth = authUtils.getAuth();
       if (!auth || !auth.authData) {
-        console.log('❌ No auth data to extend');
+        console.log(' No auth data to extend');
         return false;
       }
 
@@ -171,7 +170,7 @@ export const authUtils = {
       console.log('✅ Token expiration extended by 30 days');
       return true;
     } catch (error) {
-      console.error('❌ Error extending token:', error);
+      console.error(' Error extending token:', error);
       return false;
     }
   },
@@ -181,7 +180,7 @@ export const authUtils = {
     try {
       const auth = authUtils.getAuth();
       if (!auth) {
-        console.log('❌ No auth data for token refresh');
+        console.log(' No auth data for token refresh');
         return false;
       }
 
@@ -190,7 +189,7 @@ export const authUtils = {
       const timeUntilExpiry = auth.authData?.expiresAt - Date.now();
       
       if (timeUntilExpiry < sevenDays) {
-        console.log('🔄 Token close to expiry, attempting refresh...');
+        console.log(' Token close to expiry, attempting refresh...');
         
         try {
           // Try to refresh token with backend
@@ -198,11 +197,11 @@ export const authUtils = {
           
           if (response.data.token) {
             authUtils.saveAuth(response.data.token, auth.user);
-            console.log('✅ Token refreshed successfully');
+            console.log(' Token refreshed successfully');
             return true;
           }
         } catch (refreshError) {
-          console.log('❌ Token refresh failed, extending current token');
+          console.log(' Token refresh failed, extending current token');
           // If refresh fails, extend current token
           return authUtils.extendToken();
         }
@@ -210,7 +209,7 @@ export const authUtils = {
       
       return true;
     } catch (error) {
-      console.error('❌ Token refresh failed:', error);
+      console.error(' Token refresh failed:', error);
       return false;
     }
   },
@@ -285,14 +284,14 @@ export const authUtils = {
         // Auto-extend if needed
         authUtils.autoExtendToken();
         
-        console.log('✅ Auth state initialized successfully');
+        console.log(' Auth state initialized successfully');
         return true;
       } else {
-        console.log('ℹ️ No existing auth state found');
+        console.log('ℹ No existing auth state found');
         return false;
       }
     } catch (error) {
-      console.error('❌ Error initializing auth state:', error);
+      console.error(' Error initializing auth state:', error);
       authUtils.clearAuth();
       return false;
     }
@@ -304,7 +303,7 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.log('🚨 401 Unauthorized - clearing auth data');
+      console.log(' 401 Unauthorized - clearing auth data');
       authUtils.clearAuth();
       
       // Only redirect if not already on login page

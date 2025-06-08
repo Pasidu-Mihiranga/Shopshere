@@ -1,95 +1,76 @@
-// theme.js
-// Theme configuration for the application
 
-// Color palette
 export const colors = {
-    // Primary colors
     primary: '#F15A24',
     primaryLight: '#FF9D5C',
     primaryDark: '#D13800',
     
-    // Secondary colors
     secondary: '#333333',
     secondaryLight: '#666666',
     secondaryDark: '#111111',
     
-    // Neutral colors
     white: '#FFFFFF',
     lightGray: '#F5F5F5',
     mediumGray: '#E0E0E0',
     darkGray: '#888888',
     
-    // Status colors
     success: '#4CAF50',
     warning: '#FFC107',
     error: '#F44336',
     info: '#2196F3',
     
-    // Text colors
     textPrimary: '#212121',
     textSecondary: '#757575',
-    textDisabled: '#9E9E9E',
-    
-    // Border colors
+    textDisabled: '#9E9E9E',   
     borderLight: '#E0E0E0',
     borderMedium: '#BDBDBD',
     
-    // Background colors
     bgMain: '#FFFFFF',
     bgLight: '#F9F9F9',
     bgDark: '#333333'
   };
   
-  // Typography
   export const typography = {
-    // Font families
     fontPrimary: "'Open Sans', sans-serif",
     fontHeading: "'Montserrat', sans-serif",
     
-    // Font sizes
-    fontSizeXs: '0.75rem', // 12px
-    fontSizeSm: '0.875rem', // 14px
-    fontSizeMd: '1rem', // 16px
-    fontSizeLg: '1.125rem', // 18px
-    fontSizeXl: '1.25rem', // 20px
-    fontSize2xl: '1.5rem', // 24px
-    fontSize3xl: '1.875rem', // 30px
-    fontSize4xl: '2.25rem', // 36px
+    fontSizeXs: '0.75rem', 
+    fontSizeSm: '0.875rem', 
+    fontSizeMd: '1rem', 
+    fontSizeLg: '1.125rem', 
+    fontSizeXl: '1.25rem', 
+    fontSize2xl: '1.5rem', 
+    fontSize3xl: '1.875rem', 
+    fontSize4xl: '2.25rem', 
     
-    // Font weights
     fontWeightLight: 300,
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightSemibold: 600,
     fontWeightBold: 700,
     
-    // Line heights
     lineHeightTight: 1.25,
     lineHeightNormal: 1.5,
     lineHeightRelaxed: 1.75
   };
   
-  // Spacing
   export const spacing = {
-    xs: '0.25rem', // 4px
-    sm: '0.5rem', // 8px
-    md: '1rem', // 16px
-    lg: '1.5rem', // 24px
-    xl: '2rem', // 32px
-    xxl: '3rem' // 48px
+    xs: '0.25rem', 
+    sm: '0.5rem', 
+    md: '1rem', 
+    lg: '1.5rem', 
+    xl: '2rem', 
+    xxl: '3rem' 
   };
   
-  // Border radius
   export const borderRadius = {
     none: '0',
-    sm: '0.125rem', // 2px
-    md: '0.25rem', // 4px
-    lg: '0.5rem', // 8px
-    xl: '1rem', // 16px
+    sm: '0.125rem', 
+    md: '0.25rem', 
+    lg: '0.5rem', 
+    xl: '1rem', 
     full: '9999px'
   };
   
-  // Shadows
   export const shadows = {
     none: 'none',
     sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
@@ -99,14 +80,12 @@ export const colors = {
     inner: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
   };
   
-  // Transitions
   export const transitions = {
     default: 'all 0.3s ease',
     fast: 'all 0.15s ease',
     slow: 'all 0.5s ease'
   };
   
-  // Z-index values
   export const zIndex = {
     hide: -1,
     auto: 'auto',
@@ -118,7 +97,6 @@ export const colors = {
     tooltip: 1500
   };
   
-  // Breakpoints
   export const breakpoints = {
     xs: '0px',
     sm: '576px',
@@ -127,7 +105,6 @@ export const colors = {
     xl: '1200px'
   };
   
-  // Full theme object
   const theme = {
     colors,
     typography,
@@ -141,10 +118,6 @@ export const colors = {
   
   export default theme;
   
-  // constants.js
-  // Application constants
-  
-  // Application routes
   export const ROUTES = {
     HOME: '/',
     LOGIN: '/login',
@@ -168,14 +141,12 @@ export const colors = {
     SHOP_ANALYTICS: '/seller-dashboard/analytics'
   };
   
-  // User roles
   export const USER_ROLES = {
     CUSTOMER: 'customer',
     SHOP_OWNER: 'shop_owner',
     ADMIN: 'admin'
   };
   
-  // Order statuses
   export const ORDER_STATUS = {
     PENDING: 'pending',
     PROCESSING: 'processing',
@@ -185,20 +156,17 @@ export const colors = {
     PAYMENT_FAILED: 'payment_failed'
   };
   
-  // Payment methods
   export const PAYMENT_METHODS = {
     CARD: 'card',
     PAYPAL: 'paypal'
   };
   
-  // Payment statuses
   export const PAYMENT_STATUS = {
     PENDING: 'pending',
     COMPLETED: 'completed',
     FAILED: 'failed'
   };
   
-  // Promotion types
   export const PROMOTION_TYPES = {
     DISCOUNT: 'discount',
     PERCENTAGE: 'percentage',
@@ -206,13 +174,11 @@ export const colors = {
     COUPON: 'coupon'
   };
   
-  // Address types
   export const ADDRESS_TYPES = {
     SHIPPING: 'shipping',
     BILLING: 'billing'
   };
   
-  // Sort options for product listings
   export const SORT_OPTIONS = [
     { value: 'newest', label: 'Newest Arrivals' },
     { value: 'price_asc', label: 'Price: Low to High' },
@@ -221,22 +187,18 @@ export const colors = {
     { value: 'popular', label: 'Most Popular' }
   ];
   
-  // Product status
   export const PRODUCT_STATUS = {
     ACTIVE: true,
     INACTIVE: false
   };
   
-  // Image placeholder
   export const PLACEHOLDER_IMAGE = '/images/placeholder.png';
   
-  // Maximum upload sizes
   export const MAX_UPLOAD_SIZES = {
-    PRODUCT_IMAGE: 5 * 1024 * 1024, // 5MB
-    PROFILE_PICTURE: 2 * 1024 * 1024 // 2MB
-  };
+    PRODUCT_IMAGE: 5 * 1024 * 1024, 
+    PROFILE_PICTURE: 2 * 1024 * 1024 
+  }
   
-  // Local storage keys
   export const STORAGE_KEYS = {
     TOKEN: 'token',
     USER: 'user',
@@ -245,7 +207,6 @@ export const colors = {
     RECENTLY_VIEWED: 'recently_viewed'
   };
   
-  // API error codes
   export const ERROR_CODES = {
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
@@ -254,7 +215,6 @@ export const colors = {
     SERVER_ERROR: 500
   };
   
-  // Social auth providers
   export const AUTH_PROVIDERS = {
     LOCAL: 'local',
     GOOGLE: 'google',
@@ -262,13 +222,11 @@ export const colors = {
     APPLE: 'apple'
   };
   
-  // Pagination
   export const PAGINATION = {
     DEFAULT_PAGE: 1,
     DEFAULT_LIMIT: 12
   };
   
-  // Form validation messages
   export const VALIDATION_MESSAGES = {
     REQUIRED: 'This field is required',
     EMAIL: 'Please enter a valid email address',
@@ -276,11 +234,6 @@ export const colors = {
     PASSWORD_MATCH: 'Passwords do not match',
     PHONE: 'Please enter a valid phone number'
   };
-  
-  // utils.js
-  // General utility functions
-  
-  // Generate a random string (useful for IDs)
   export const generateRandomId = (length = 8) => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
@@ -290,7 +243,6 @@ export const colors = {
     return result;
   };
   
-  // Deep clone an object
   export const deepClone = (obj) => {
     if (obj === null || typeof obj !== 'object') {
       return obj;
@@ -310,7 +262,6 @@ export const colors = {
     return clone;
   };
   
-  // Debounce function to limit how often a function can be called
   export const debounce = (func, wait = 300) => {
     let timeout;
     return function executedFunction(...args) {
@@ -323,7 +274,6 @@ export const colors = {
     };
   };
   
-  // Throttle function to limit how often a function can be called
   export const throttle = (func, limit = 300) => {
     let inThrottle;
     return function executedFunction(...args) {
@@ -337,7 +287,6 @@ export const colors = {
     };
   };
   
-  // Check if a value is empty (null, undefined, empty string, empty array, empty object)
   export const isEmpty = (value) => {
     if (value === null || value === undefined) {
       return true;
@@ -358,7 +307,6 @@ export const colors = {
     return false;
   };
   
-  // Filter object properties
   export const filterObject = (obj, predicate) => {
     return Object.keys(obj)
       .filter(key => predicate(obj[key], key))
@@ -368,12 +316,10 @@ export const colors = {
       }, {});
   };
   
-  // Remove null/undefined values from an object
   export const removeEmptyValues = (obj) => {
     return filterObject(obj, value => value !== null && value !== undefined);
   };
   
-  // Convert an array to object with specified key
   export const arrayToObject = (array, key) => {
     return array.reduce((obj, item) => {
       obj[item[key]] = item;
@@ -381,7 +327,6 @@ export const colors = {
     }, {});
   };
   
-  // Group array items by a key
   export const groupBy = (array, key) => {
     return array.reduce((result, item) => {
       const groupKey = item[key];
@@ -393,7 +338,6 @@ export const colors = {
     }, {});
   };
   
-  // Sort array of objects by key
   export const sortByKey = (array, key, direction = 'asc') => {
     const multiplier = direction === 'desc' ? -1 : 1;
     return [...array].sort((a, b) => {
@@ -403,7 +347,6 @@ export const colors = {
     });
   };
   
-  // Safely access nested object properties without throwing errors
   export const getNestedValue = (obj, path, defaultValue = null) => {
     const keys = Array.isArray(path) ? path : path.split('.');
     let current = obj;
@@ -418,7 +361,6 @@ export const colors = {
     return current === undefined ? defaultValue : current;
   };
   
-  // Scroll to element by ID
   export const scrollToElement = (elementId, options = {}) => {
     const defaultOptions = {
       behavior: 'smooth',
@@ -442,7 +384,6 @@ export const colors = {
     });
   };
   
-  // Copy text to clipboard
   export const copyToClipboard = async (text) => {
     if (navigator.clipboard) {
       try {
@@ -453,7 +394,6 @@ export const colors = {
       }
     }
     
-    // Fallback for older browsers
     try {
       const textArea = document.createElement('textarea');
       textArea.value = text;
@@ -476,7 +416,6 @@ export const colors = {
     }
   };
   
-  // Check if a value is a valid URL
   export const isValidUrl = (url) => {
     try {
       new URL(url);
@@ -486,12 +425,10 @@ export const colors = {
     }
   };
   
-  // Get file extension from a file name or path
   export const getFileExtension = (filename) => {
     return filename.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2);
   };
   
-  // Check if an image file is valid (type and size)
   export const isValidImage = (file, maxSize = 5 * 1024 * 1024) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     

@@ -9,12 +9,10 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Add scroll event listener to change header style
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -26,17 +24,14 @@ const Layout = () => {
 
     window.addEventListener('scroll', handleScroll);
     
-    // Clean up
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
-  // Toggle mobile menu
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
     
-    // Prevent body scrolling when menu is open
     if (!isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -52,7 +47,6 @@ const Layout = () => {
         toggleMobileMenu={toggleMobileMenu}
       />
       
-      {/* Overlay for mobile menu */}
       {isMobileMenuOpen && (
         <div 
           className="mobile-menu-overlay" 
@@ -68,7 +62,6 @@ const Layout = () => {
       
       <Footer />
       
-      {/* Back to top button */}
       <button 
         className={`back-to-top ${isScrolled ? 'visible' : ''}`}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

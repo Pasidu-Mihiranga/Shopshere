@@ -1,11 +1,9 @@
-// src/services/authService.js
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import axios from 'axios';
 
 // Initialize Firebase
 const firebaseConfig = {
-  // Your Firebase config
 };
 
 firebase.initializeApp(firebaseConfig);

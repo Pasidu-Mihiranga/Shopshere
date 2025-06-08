@@ -1,14 +1,14 @@
-// hooks.js
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Custom hook for managing form state
+
 export const useForm = (initialValues = {}, validate = null) => {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form to initial values
+  
   const resetForm = useCallback(() => {
     setValues(initialValues);
     setErrors({});
@@ -16,7 +16,7 @@ export const useForm = (initialValues = {}, validate = null) => {
     setIsSubmitting(false);
   }, [initialValues]);
 
-  // Handle input change
+ 
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     const inputValue = type === 'checkbox' ? checked : value;
@@ -27,7 +27,7 @@ export const useForm = (initialValues = {}, validate = null) => {
     }));
   }, []);
 
-  // Handle input blur (for field validation)
+  
   const handleBlur = useCallback((e) => {
     const { name } = e.target;
     
@@ -37,24 +37,24 @@ export const useForm = (initialValues = {}, validate = null) => {
     }));
   }, []);
 
-  // Handle form submission
+
   const handleSubmit = useCallback((onSubmit) => {
     return async (e) => {
       e.preventDefault();
       
-      // Mark all fields as touched
+      
       const allTouched = Object.keys(values).reduce((acc, key) => {
         acc[key] = true;
         return acc;
       }, {});
       setTouched(allTouched);
       
-      // Validate if validation function is provided
+     
       if (validate) {
         const validationErrors = validate(values);
         setErrors(validationErrors);
         
-        // If there are errors, don't proceed
+      
         if (Object.keys(validationErrors).length > 0) {
           return;
         }
@@ -72,7 +72,7 @@ export const useForm = (initialValues = {}, validate = null) => {
     };
   }, [values, validate]);
 
-  // Set field value programmatically
+
   const setFieldValue = useCallback((name, value) => {
     setValues(prev => ({
       ...prev,
@@ -80,7 +80,7 @@ export const useForm = (initialValues = {}, validate = null) => {
     }));
   }, []);
 
-  // Set error programmatically
+
   const setFieldError = useCallback((name, error) => {
     setErrors(prev => ({
       ...prev,
@@ -102,7 +102,7 @@ export const useForm = (initialValues = {}, validate = null) => {
   };
 };
 
-// Custom hook for debouncing values (useful for search inputs)
+
 export const useDebounce = (value, delay = 500) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   
@@ -119,7 +119,7 @@ export const useDebounce = (value, delay = 500) => {
   return debouncedValue;
 };
 
-// Custom hook for detecting clicks outside an element
+
 export const useClickOutside = (callback) => {
   const ref = useRef(null);
   
@@ -140,9 +140,7 @@ export const useClickOutside = (callback) => {
   return ref;
 };
 
-// Custom hook for managing localStorage state
 export const useLocalStorage = (key, initialValue) => {
-  // Get initial value from localStorage or use provided initial value
   const [storedValue, setStoredValue] = useState(() => {
     try {
       const item = localStorage.getItem(key);
@@ -153,10 +151,8 @@ export const useLocalStorage = (key, initialValue) => {
     }
   });
   
-  // Update localStorage when the state changes
   const setValue = useCallback((value) => {
     try {
-      // Allow value to be a function for same API as useState
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       
       setStoredValue(valueToStore);
@@ -169,7 +165,6 @@ export const useLocalStorage = (key, initialValue) => {
   return [storedValue, setValue];
 };
 
-// Custom hook for handling API calls with loading and error states
 export const useFetch = (apiFunction, initialData = null) => {
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
@@ -194,32 +189,27 @@ export const useFetch = (apiFunction, initialData = null) => {
   return { data, loading, error, execute };
 };
 
-// Custom hook for managing pagination
 export const usePagination = (items, itemsPerPage = 10) => {
   const [currentPage, setCurrentPage] = useState(1);
   
   const totalPages = Math.ceil(items.length / itemsPerPage);
   
-  // Get current items for the page
   const currentItems = items.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   
-  // Go to specific page
   const goToPage = useCallback((page) => {
     const pageNumber = Math.max(1, Math.min(page, totalPages));
     setCurrentPage(pageNumber);
   }, [totalPages]);
   
-  // Go to next page
   const nextPage = useCallback(() => {
     if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
     }
   }, [currentPage, totalPages]);
   
-  // Go to previous page
   const prevPage = useCallback(() => {
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1);
@@ -236,7 +226,6 @@ export const usePagination = (items, itemsPerPage = 10) => {
   };
 };
 
-// Custom hook for window resize events
 export const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
@@ -261,7 +250,6 @@ export const useWindowSize = () => {
   return windowSize;
 };
 
-// Custom hook for detecting screen size breakpoints
 export const useBreakpoint = () => {
   const { width } = useWindowSize();
   

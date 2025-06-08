@@ -1,4 +1,3 @@
-// Modal.js
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/components/Modal.scss';
@@ -13,7 +12,6 @@ const Modal = ({
   size = 'medium',
   className = '',
 }) => {
-  // Close modal when Escape key is pressed
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === 'Escape' && isOpen) {
@@ -36,7 +34,6 @@ const Modal = ({
     return null;
   }
 
-  // Stop propagation to prevent closing when clicking inside the modal
   const handleModalContentClick = (e) => {
     e.stopPropagation();
   };

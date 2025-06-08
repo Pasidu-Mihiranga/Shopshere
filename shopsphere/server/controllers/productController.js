@@ -1,4 +1,3 @@
-// server/controllers/productController.js
 const Product = require('../models/Product');
 const Shop = require('../models/Shop');
 const Category = require('../models/Category');
@@ -46,7 +45,7 @@ exports.createProduct = async (req, res) => {
     }
 
     if (errors.length > 0) {
-      console.log('❌ Validation errors:', errors);
+      console.log(' Validation errors:', errors);
       return res.status(400).json({
         message: `Missing required fields: ${errors.join(', ')}`,
         errors: errors
@@ -70,13 +69,13 @@ exports.createProduct = async (req, res) => {
       });
       
       await shop.save();
-      console.log('✅ Shop created:', shop._id);
+      console.log(' Shop created:', shop._id);
     }
 
     // Verify category exists
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
-      console.log('❌ Category not found:', category);
+      console.log(' Category not found:', category);
       return res.status(400).json({ 
         message: 'Invalid category selected. Please choose a valid category.' 
       });
@@ -89,7 +88,7 @@ exports.createProduct = async (req, res) => {
         // Store relative path for serving static files
         images.push(`/uploads/products/${file.filename}`);
       });
-      console.log('📷 Images processed:', images.length);
+      console.log(' Images processed:', images.length);
     }
 
     // Generate SKU if not provided
@@ -112,7 +111,7 @@ exports.createProduct = async (req, res) => {
       isPromoted: isPromoted === 'true' || isPromoted === true || isPromoted === 'on'
     };
 
-    console.log('🔄 Creating product with data:', {
+    console.log(' Creating product with data:', {
       ...productData,
       images: `${productData.images.length} images`
     });
@@ -129,7 +128,7 @@ exports.createProduct = async (req, res) => {
     // Populate category for response
     await product.populate('category', 'name');
 
-    console.log('✅ Product created successfully:', product._id);
+    console.log(' Product created successfully:', product._id);
 
     res.status(201).json({
       success: true,
@@ -141,7 +140,7 @@ exports.createProduct = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error creating product:', error);
+    console.error(' Error creating product:', error);
     
     // Handle specific MongoDB errors
     if (error.name === 'ValidationError') {
@@ -174,13 +173,13 @@ exports.createProduct = async (req, res) => {
 // Get shop products
 exports.getShopProducts = async (req, res) => {
   try {
-    console.log('📦 Fetching products for user:', req.user._id);
+    console.log(' Fetching products for user:', req.user._id);
     
     // Find shop for the authenticated user
     const shop = await Shop.findOne({ ownerId: req.user._id });
     
     if (!shop) {
-      console.log('🏪 No shop found, returning empty array');
+      console.log(' No shop found, returning empty array');
       return res.json({
         success: true,
         products: [],
@@ -199,7 +198,7 @@ exports.getShopProducts = async (req, res) => {
       categoryName: product.category?.name || 'Unknown'
     }));
 
-    console.log(`✅ Found ${products.length} products for shop ${shop.shopName}`);
+    console.log(` Found ${products.length} products for shop ${shop.shopName}`);
 
     res.json({
       success: true,
@@ -208,7 +207,7 @@ exports.getShopProducts = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error fetching shop products:', error);
+    console.error(' Error fetching shop products:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch products',
@@ -295,7 +294,7 @@ exports.updateProduct = async (req, res) => {
       { new: true }
     ).populate('category', 'name');
 
-    console.log('✅ Product updated successfully:', updatedProduct._id);
+    console.log(' Product updated successfully:', updatedProduct._id);
 
     res.json({
       success: true,
@@ -307,7 +306,7 @@ exports.updateProduct = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error updating product:', error);
+    console.error(' Error updating product:', error);
     
     if (error.code === 11000) {
       return res.status(400).json({
@@ -346,7 +345,7 @@ exports.deleteProduct = async (req, res) => {
       $inc: { totalProducts: -1 }
     });
 
-    console.log('✅ Product deleted successfully');
+    console.log('Product deleted successfully');
 
     res.json({ 
       success: true,
@@ -354,7 +353,7 @@ exports.deleteProduct = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error deleting product:', error);
+    console.error(' Error deleting product:', error);
     res.status(500).json({
       message: 'Failed to delete product',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -389,7 +388,7 @@ exports.updateProductStatus = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error updating product status:', error);
+    console.error(' Error updating product status:', error);
     res.status(500).json({
       message: 'Failed to update product status',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -499,8 +498,8 @@ exports.getProducts = async (req, res) => {
     // Get total count for pagination
     const total = await Product.countDocuments(query);
 
-    console.log(`📦 Found ${products.length} products after filtering`);
-    console.log(`📊 Total products matching filter: ${total}`);
+    console.log(` Found ${products.length} products after filtering`);
+    console.log(` Total products matching filter: ${total}`);
 
     // Add category name to each product for frontend display
     const productsWithCategoryName = products.map(product => ({
@@ -519,7 +518,7 @@ exports.getProducts = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
+    console.error(' Error fetching products:', error);
     res.status(500).json({ 
       success: false,
       message: 'Failed to fetch products',
@@ -542,14 +541,14 @@ exports.getProductById = async (req, res) => {
       .populate('reviews.userId', 'firstName lastName');
 
     if (!product) {
-      console.log('❌ Product not found:', id);
+      console.log(' Product not found:', id);
       return res.status(404).json({ 
         success: false,
         message: 'Product not found' 
       });
     }
 
-    console.log('✅ Product found:', product.name);
+    console.log('Product found:', product.name);
 
     // Add category name for consistency
     const productWithCategoryName = {
@@ -564,7 +563,7 @@ exports.getProductById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error fetching product:', error);
+    console.error(' Error fetching product:', error);
     
     if (error.name === 'CastError') {
       return res.status(400).json({ 
@@ -632,7 +631,7 @@ exports.getProductsByCategory = async (req, res) => {
       shopName: product.shopId?.shopName || 'Unknown Shop'
     }));
 
-    console.log(`✅ Found ${products.length} products in category: ${category.name}`);
+    console.log(` Found ${products.length} products in category: ${category.name}`);
 
     res.json({
       success: true,
@@ -647,7 +646,7 @@ exports.getProductsByCategory = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error fetching products by category:', error);
+    console.error(' Error fetching products by category:', error);
     
     if (error.name === 'CastError') {
       return res.status(400).json({
@@ -675,7 +674,7 @@ exports.searchProducts = async (req, res) => {
       });
     }
 
-    console.log('🔍 Searching products for:', searchTerm);
+    console.log('Searching products for:', searchTerm);
 
     const query = {
       isActive: true,
@@ -715,7 +714,7 @@ exports.searchProducts = async (req, res) => {
       shopName: product.shopId?.shopName || 'Unknown Shop'
     }));
 
-    console.log(`✅ Found ${products.length} products for search: "${searchTerm}"`);
+    console.log(` Found ${products.length} products for search: "${searchTerm}"`);
 
     res.json({
       success: true,
@@ -727,7 +726,7 @@ exports.searchProducts = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error searching products:', error);
+    console.error(' Error searching products:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to search products'

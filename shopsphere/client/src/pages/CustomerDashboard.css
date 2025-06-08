@@ -19,14 +19,12 @@
   margin-bottom: 1.5rem;
 }
 
-/* Main Container */
 .dashboard-container {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 2rem;
 }
 
-/* Sidebar */
 .dashboard-sidebar {
   position: sticky;
   top: 90px;
@@ -84,7 +82,6 @@
   word-break: break-all;
 }
 
-/* Navigation */
 .dashboard-nav {
   background-color: white;
   border-radius: 8px;
@@ -152,7 +149,6 @@
   color: #D32F2F;
 }
 
-/* Dashboard Content */
 .dashboard-content {
   background-color: white;
   border-radius: 8px;
@@ -160,7 +156,6 @@
   padding: 1.5rem;
 }
 
-/* Profile Section */
 .profile-section {
   margin-bottom: 2rem;
 }
@@ -190,7 +185,6 @@
   max-width: 600px;
 }
 
-/* Loading State */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -215,7 +209,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
 @media (max-width: 992px) {
   .dashboard-container {
     grid-template-columns: 1fr;

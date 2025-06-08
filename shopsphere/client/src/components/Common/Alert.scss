@@ -1,4 +1,4 @@
-/* Alert.scss */
+
 .alert {
     position: relative;
     padding: 1rem;
@@ -41,7 +41,7 @@
       }
     }
     
-    /* Alert variants */
+    
     &.alert-success {
       background-color: rgba(76, 175, 80, 0.1);
       border-color: rgba(76, 175, 80, 0.3);
@@ -83,7 +83,7 @@
     }
   }
   
-  /* Animation for alert */
+ 
   @keyframes alertFadeIn {
     from {
       opacity: 0;

@@ -1,4 +1,3 @@
-// server/controllers/categoryController.js
 exports.getCategories = async (req, res) => {
   try {
     const mockCategories = [

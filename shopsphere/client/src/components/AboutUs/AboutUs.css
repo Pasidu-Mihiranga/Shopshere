@@ -1,4 +1,4 @@
-/* AboutUs.css */
+
 :root {
     --primary-color: #f26e21;
     --primary-dark: #e05c14;
@@ -239,7 +239,7 @@
     transform: translateY(-3px);
   }
   
-  /* Animation for page load */
+ 
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -271,7 +271,7 @@
     animation-delay: 0.8s;
   }
   
-  /* Responsive styles */
+ 
   @media (max-width: 768px) {
     .values-grid {
       grid-template-columns: 1fr;
@@ -295,5 +295,5 @@
     }
   }
   
-  /* For FontAwesome icons if using them */
+
   @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');

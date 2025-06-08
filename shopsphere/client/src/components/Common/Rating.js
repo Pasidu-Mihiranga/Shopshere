@@ -1,4 +1,3 @@
-// Rating.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import '../styles/components/Rating.scss';
@@ -13,7 +12,7 @@ const Rating = ({
 }) => {
   const renderStars = () => {
     const stars = [];
-    const roundedValue = Math.round(value * 2) / 2; // Round to nearest 0.5
+    const roundedValue = Math.round(value * 2) / 2; 
 
     for (let i = 1; i <= max; i++) {
       let starClass = 'star-empty';

@@ -1,4 +1,3 @@
-// Loader.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import '../styles/components/Loader.scss';

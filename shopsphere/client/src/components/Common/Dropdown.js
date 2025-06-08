@@ -1,4 +1,4 @@
-// Dropdown.js
+
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/components/Dropdown.scss';
@@ -40,7 +40,7 @@ const Dropdown = ({
     };
   }, [isOpen]);
 
-  // Close dropdown when ESC key is pressed
+  
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === 'Escape' && isOpen) {

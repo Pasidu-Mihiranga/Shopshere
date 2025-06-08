@@ -1,4 +1,3 @@
-// src/contexts/CartContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
@@ -58,7 +57,7 @@ export const CartProvider = ({ children }) => {
       }
 
       console.log('🛒 Adding to cart:', { product: product.name, quantity });
-      
+      alert(`${product.name} added to cart successfully!`);
       const item = {
         productId: product._id,
         shopId: product.shopId || 'default-shop',

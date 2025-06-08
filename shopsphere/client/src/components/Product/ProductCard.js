@@ -1,4 +1,3 @@
-// src/components/Product/ProductCard.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
@@ -14,18 +13,13 @@ const ProductCard = ({ product }) => {
   };
 
 
-  // Add this line to construct the full image URL
   const imageUrl = product.images && product.images[0] 
     ? `http://localhost:5000${product.images[0]}` 
     : '/images/placeholder.png';
   
   
   return (
-    <div className="product-card"
-      // style={{ 
-      //     width: '300px', 
-          
-      //   }}
+    <div className="product-card"          
     >
       <Link to={`/products/${product._id}`} className="product-link">
         <div className="product-image"
@@ -36,7 +30,7 @@ const ProductCard = ({ product }) => {
           backgroundColor: '#f5f5f5'
         }}>
           <img 
-            src={imageUrl}  /* Use imageUrl instead of product.images[0] */
+            src={imageUrl}  
             alt={product.name}
             style={{
               width: '100%',

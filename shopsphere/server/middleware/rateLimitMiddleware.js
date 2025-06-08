@@ -1,4 +1,3 @@
-// server/middleware/rateLimitMiddleware.js
 const rateLimit = require('express-rate-limit');
 
 // API rate limiter

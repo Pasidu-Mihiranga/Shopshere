@@ -1,6 +1,5 @@
-// server/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose'); // ✅ ADD THIS LINE
+const mongoose = require('mongoose'); 
 const User = mongoose.model('User');
 const Shop = mongoose.model('Shop');
 

@@ -1,4 +1,3 @@
-// Pagination.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import './Pagination.scss';
@@ -9,20 +8,16 @@ const Pagination = ({
   onPageChange,
   maxVisiblePages = 5 
 }) => {
-  // Early return if less than 2 pages
   if (totalPages <= 1) return null;
 
-  // Calculate range of visible pages
   const getVisiblePageRange = () => {
     if (totalPages <= maxVisiblePages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    // Calculate start and end page numbers
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = startPage + maxVisiblePages - 1;
 
-    // Adjust if end page is beyond total pages
     if (endPage > totalPages) {
       endPage = totalPages;
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -35,7 +30,6 @@ const Pagination = ({
 
   return (
     <div className="pagination">
-      {/* Previous button */}
       <button
         className="pagination-btn"
         onClick={() => onPageChange(currentPage - 1)}
@@ -44,7 +38,6 @@ const Pagination = ({
         &laquo;
       </button>
 
-      {/* First page if not visible */}
       {visiblePages[0] > 1 && (
         <>
           <button
@@ -59,7 +52,6 @@ const Pagination = ({
         </>
       )}
 
-      {/* Visible page buttons */}
       {visiblePages.map(pageNum => (
         <button
           key={pageNum}
@@ -70,7 +62,6 @@ const Pagination = ({
         </button>
       ))}
 
-      {/* Last page if not visible */}
       {visiblePages[visiblePages.length - 1] < totalPages && (
         <>
           {visiblePages[visiblePages.length - 1] < totalPages - 1 && (
@@ -85,7 +76,6 @@ const Pagination = ({
         </>
       )}
 
-      {/* Next button */}
       <button
         className="pagination-btn"
         onClick={() => onPageChange(currentPage + 1)}

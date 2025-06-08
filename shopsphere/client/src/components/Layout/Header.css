@@ -1,4 +1,3 @@
-/* Header Styles */
 
 .shopsphere-header {
   background-color: #333;
@@ -19,7 +18,6 @@
   justify-content: space-between;
 }
 
-/* Logo Section */
 .shopsphere-logo-section {
   flex-shrink: 0;
 }
@@ -33,7 +31,6 @@
   width: auto;
 }
 
-/* Search Section - Desktop */
 .shopsphere-search-section {
   flex: 1;
   max-width: 600px;
@@ -108,7 +105,6 @@
   height: 20px;
 }
 
-/* Right Section */
 .shopsphere-right-section {
   display: flex;
   align-items: center;
@@ -116,10 +112,8 @@
   flex-shrink: 0;
 }
 
-/* Cart */
 .shopsphere-cart-link {
   text-decoration: none;
-  /* Remove focus outline */
   outline: none;
   border: none;
 }
@@ -140,7 +134,6 @@
   border-radius: 50%;
   height: 50px;
   
-  /* Remove any default button styling if it's a button */
   outline: none;
   border: none;
   background: none;
@@ -158,7 +151,6 @@
 .shopsphere-cart-icon {
   height: 35px;
   width: auto;
-  /* Remove outline from the icon itself */
   outline: none;
   
   
@@ -194,7 +186,6 @@
   100% { transform: scale(1); }
 }
 
-/* Additional universal fix for any button-like elements */
 button:focus,
 button:active,
 a:focus,
@@ -203,7 +194,6 @@ a:active {
   box-shadow: none !important;
 }
 
-/* Auth Buttons */
 .shopsphere-auth-buttons {
   display: flex;
   gap: 10px;
@@ -249,7 +239,6 @@ a:active {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* User Menu */
 .shopsphere-user-menu {
   position: relative;
 }
@@ -349,7 +338,6 @@ a:active {
   color: #F44336;
 }
 
-/* Mobile Responsive */
 @media (max-width: 2000px) {
   .shopsphere-header-container {
     padding: 12px 20px;
@@ -389,7 +377,6 @@ a:active {
     position: relative;
   }
 
-  /* Logo Section - Mobile */
  
 .shopsphere-logo-section {
   order: 1;
@@ -401,10 +388,9 @@ a:active {
 .shopsphere-logo {
   height: 100px;
   display: block;
-  margin: 0 auto; /* This ensures the logo is centered */
+  margin: 0 auto; 
 }
 
-/* Alternative approach using flexbox (if the parent allows) */
 .shopsphere-logo-section-flex {
   order: 1;
   align-self: center;
@@ -418,7 +404,6 @@ a:active {
   height: 100px;
 }
 
-  /* Auth/User Section - Mobile (show after logo) */
   .shopsphere-right-section {
     order: 2;
     justify-content: center;
@@ -438,13 +423,10 @@ a:active {
     padding: 8px 16px;
   }
 
-  /* Hide desktop search */
   .shopsphere-desktop-search {
     display: none;
   }
   
-  /* Show mobile search */
-  /* Show mobile search */
 .shopsphere-mobile-search {
   display: flex;
   order: 3;
@@ -486,7 +468,6 @@ a:active {
   height: 18px;
 }
 
-/* Mobile cart positioning */
 .shopsphere-mobile-cart {
   flex-shrink: 0;
 }
@@ -503,12 +484,10 @@ a:active {
   right: -3px;
 }
 
-/* Hide desktop cart */
 .shopsphere-right-section .shopsphere-cart-link {
   display: none;
 }
 
-/* User menu adjustments for mobile */
 .shopsphere-user-menu-button {
   padding: 10px 18px;
   font-size: 15px;
@@ -519,7 +498,6 @@ a:active {
   font-size: 14px;
 }
 
-/* Fixed dropdown menu positioning */
 .shopsphere-dropdown-menu {
   position: absolute;
   right: 0;
@@ -527,7 +505,6 @@ a:active {
   transform: translateX(-50%) translateY(-10px);
   min-width: 200px;
   max-width: 90vw;
-  /* Center the dropdown relative to the button */
   margin-left: 50%;
 }
 
@@ -540,10 +517,9 @@ a:active {
   left: 50%;
   right: auto;
   transform: translateX(-50%) rotate(45deg);
-  top: -5px; /* Adjust as needed for arrow positioning */
+  top: -5px; 
 }
 
-/* Center the dropdown items */
 .shopsphere-dropdown-item {
   padding: 14px 20px;
   font-size: 15px;
@@ -552,7 +528,6 @@ a:active {
   width: 100%;
 }
 
-/* Alternative approach if you want the dropdown centered on screen */
 .shopsphere-dropdown-menu-centered {
   position: fixed;
   left: 50%;
@@ -560,7 +535,7 @@ a:active {
   transform: translateX(-50%) translateY(-10px);
   min-width: 200px;
   max-width: 90vw;
-  top: 60px; /* Adjust based on header height */
+  top: 60px; 
 }
 
 .shopsphere-dropdown-menu-centered.shopsphere-show {
@@ -568,7 +543,7 @@ a:active {
 }
 
 .shopsphere-dropdown-menu-centered::before {
-  display: none; /* Hide arrow for fixed positioning */
+  display: none; 
 }
 }
 
@@ -580,7 +555,6 @@ a:active {
   .shopsphere-cart-icon {
     position: static;
   }
-   /* Logo Section - Mobile */
   
   .shopsphere-logo-section {
     order: 1;
@@ -592,10 +566,9 @@ a:active {
   .shopsphere-logo {
     height: 100px;
     display: block;
-    margin: 0 auto; /* This ensures the logo is centered */
+    margin: 0 auto; 
   }
 
-  /* Alternative approach using flexbox (if the parent allows) */
   .shopsphere-logo-section-flex {
     order: 1;
     align-self: center;
@@ -689,7 +662,6 @@ a:active {
     gap: 10px;
   }
 
-   /* Logo Section - Mobile */
  
 .shopsphere-logo-section {
   order: 1;
@@ -701,10 +673,9 @@ a:active {
 .shopsphere-logo {
   height: 100px;
   display: block;
-  margin: 0 auto; /* This ensures the logo is centered */
+  margin: 0 auto;
 }
 
-/* Alternative approach using flexbox (if the parent allows) */
 .shopsphere-logo-section-flex {
   order: 1;
   align-self: center;
@@ -781,7 +752,6 @@ a:active {
   }
 }
 
-/* Smooth transitions for all interactive elements */
 * {
   box-sizing: border-box;
 }
@@ -792,7 +762,6 @@ input {
   transition: all 0.3s ease;
 }
 
-/* Focus states for accessibility */
 .shopsphere-login-button:focus,
 .shopsphere-register-button:focus,
 .shopsphere-user-menu-button:focus,
@@ -802,16 +771,13 @@ input {
   outline-offset: 2px;
 }
 
-/* Prevent body scroll when dropdown is open on mobile */
 @media (max-width: 768px) {
   body.shopsphere-dropdown-open {
     overflow: hidden;
   }
 }
 
-/* Additional mobile improvements */
 @media (max-width: 768px) {
-  /* Ensure touch targets are at least 44px */
   .shopsphere-mobile-search .shopsphere-search-button,
   .shopsphere-mobile-cart .shopsphere-cart-container,
   .shopsphere-login-button,
@@ -821,27 +787,23 @@ input {
     min-width: 44px;
   }
 
-  /* Improve touch interaction */
   .shopsphere-dropdown-item {
     min-height: 44px;
     display: flex;
     align-items: center;
   }
 
-  /* Better spacing for mobile */
   .shopsphere-header-container {
     min-height: auto;
   }
   
 
-  /* Prevent horizontal scroll */
   .shopsphere-mobile-search .shopsphere-search-form {
     min-width: 0;
     overflow: hidden;
   }
 }
 
-/* Landscape phone orientation */
 @media (max-width: 768px) and (orientation: landscape) {
   .shopsphere-header-container {
     flex-direction: row;
@@ -850,7 +812,6 @@ input {
     gap: 10px;
   }
 
-   /* Logo Section - Mobile */
   
   .shopsphere-logo-section {
     order: 1;
@@ -862,10 +823,9 @@ input {
   .shopsphere-logo {
     height: 100px;
     display: block;
-    margin: 0 auto; /* This ensures the logo is centered */
+    margin: 0 auto;
   }
 
-  /* Alternative approach using flexbox (if the parent allows) */
   .shopsphere-logo-section-flex {
     order: 1;
     align-self: center;

@@ -7,7 +7,7 @@
   
   .main-content {
     flex: 1;
-    padding-top: 80px; /* Match header height */
+    padding-top: 80px; 
     transition: filter 0.3s ease;
   }
   
@@ -22,7 +22,6 @@
     width: 100%;
   }
   
-  /* Mobile menu overlay */
   .mobile-menu-overlay {
     position: fixed;
     top: 0;
@@ -34,7 +33,6 @@
     backdrop-filter: blur(3px);
   }
   
-  /* Back to top button */
   .back-to-top {
     position: fixed;
     bottom: 20px;
@@ -69,6 +67,6 @@
   
   @media (max-width: 768px) {
     .main-content {
-      padding-top: 60px; /* Adjust for smaller mobile header */
+      padding-top: 60px; 
     }
   }

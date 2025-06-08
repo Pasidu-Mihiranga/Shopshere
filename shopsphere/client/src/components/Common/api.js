@@ -1,7 +1,7 @@
-// api.js
+
 import axios from 'axios';
 
-// Create an axios instance with defaults
+
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '/api',
   headers: {
@@ -9,7 +9,7 @@ const api = axios.create({
   }
 });
 
-// Request interceptor for adding auth token
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,13 +21,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for global error handling
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 Unauthorized responses
+    
     if (error.response && error.response.status === 401) {
-      // Clear token and redirect to login
+      
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
@@ -37,7 +37,7 @@ api.interceptors.response.use(
 
 export default api;
 
-// API service functions
+
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),

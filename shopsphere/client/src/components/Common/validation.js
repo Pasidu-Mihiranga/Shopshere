@@ -1,13 +1,9 @@
-// validation.js
-// Simple validation helper functions
 
-// Email validation
 export const isValidEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
   
-  // Password validation (at least 8 chars, 1 number, 1 uppercase)
   export const isValidPassword = (password) => {
     if (password.length < 8) return false;
     if (!/\d/.test(password)) return false;
@@ -15,7 +11,6 @@ export const isValidEmail = (email) => {
     return true;
   };
   
-  // Get password strength (0-4)
   export const getPasswordStrength = (password) => {
     let strength = 0;
     if (password.length >= 8) strength += 1;
@@ -25,22 +20,18 @@ export const isValidEmail = (email) => {
     return strength;
   };
   
-  // Phone number validation
   export const isValidPhoneNumber = (phone) => {
     const regex = /^\+?[0-9]{10,15}$/;
     return regex.test(phone.replace(/\s+/g, ''));
   };
   
-  // Credit card validation (basic Luhn algorithm)
   export const isValidCreditCard = (number) => {
     if (!/^\d+$/.test(number.replace(/\s+/g, ''))) return false;
     
     const digits = number.replace(/\s+/g, '').split('').map(Number);
     
-    // Check if the card length is valid
     if (digits.length < 13 || digits.length > 19) return false;
     
-    // Luhn algorithm
     let sum = 0;
     const parity = digits.length % 2;
     
@@ -58,11 +49,10 @@ export const isValidEmail = (email) => {
     return sum % 10 === 0;
   };
   
-  // Check if credit card is expired
   export const isCreditCardExpired = (month, year) => {
     const now = new Date();
-    const currentMonth = now.getMonth() + 1; // getMonth() is 0-indexed
-    const currentYear = now.getFullYear() % 100; // Get last 2 digits
+    const currentMonth = now.getMonth() + 1; 
+    const currentYear = now.getFullYear() % 100; 
     
     const expiryMonth = parseInt(month, 10);
     const expiryYear = parseInt(year, 10);
@@ -73,7 +63,6 @@ export const isValidEmail = (email) => {
     return false;
   };
   
-  // Form validation helper
   export const validateForm = (values, rules) => {
     const errors = {};
     

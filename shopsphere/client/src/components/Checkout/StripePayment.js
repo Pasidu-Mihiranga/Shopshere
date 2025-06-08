@@ -1,4 +1,4 @@
-// src/components/Checkout/StripePayment.js
+
 import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { createPaymentIntent } from '../../services/paymentService';

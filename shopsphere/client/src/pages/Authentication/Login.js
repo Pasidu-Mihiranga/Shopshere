@@ -1,25 +1,4 @@
-// =============================================================================
-// SOLUTION FOR 404 ERROR - Backend API Configuration
-// =============================================================================
 
-// =============================================================================
-// 1. CHECK YOUR BACKEND SERVER STATUS
-// =============================================================================
-
-/*
-First, verify your backend is running:
-
-1. Open terminal and navigate to your server folder
-2. Run: npm start (or node server.js)
-3. You should see: "Server is running on port 5000" or similar
-4. Test: http://localhost:5000/api (should return API info)
-*/
-
-// =============================================================================
-// 2. UPDATED LOGIN COMPONENT WITH API BASE URL FIX
-// =============================================================================
-
-// src/pages/Authentication/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -309,28 +288,28 @@ const Login = () => {
       
       // Test root endpoint
       const rootResponse = await axios.get(`${API_BASE}/`);
-      console.log('✅ Root endpoint working:', rootResponse.data);
+      console.log(' Root endpoint working:', rootResponse.data);
       
       // Test API endpoint
       const apiResponse = await axios.get(`${API_BASE}/api`);
-      console.log('✅ API endpoint working:', apiResponse.data);
+      console.log(' API endpoint working:', apiResponse.data);
       
       // Test health endpoint
       const healthResponse = await axios.get(`${API_BASE}/api/health`);
-      console.log('✅ Health endpoint working:', healthResponse.data);
+      console.log(' Health endpoint working:', healthResponse.data);
       
       setError(''); // Clear any previous errors
-      alert(`✅ Backend connection successful!\n\nServer: ${API_BASE}\nStatus: ${healthResponse.data.status}\nDatabase: ${healthResponse.data.database}`);
+      alert(` Backend connection successful!\n\nServer: ${API_BASE}\nStatus: ${healthResponse.data.status}\nDatabase: ${healthResponse.data.database}`);
       
     } catch (error) {
-      console.error('❌ Backend connection failed:', error);
+      console.error(' Backend connection failed:', error);
       
       if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        setError(`❌ Cannot connect to backend server at ${API_BASE}\n\n🔧 Solutions:\n1. Start your backend server (npm start)\n2. Check if server is running on port 5000\n3. Verify the server URL is correct`);
+        setError(` Cannot connect to backend server at ${API_BASE}\n\n🔧 Solutions:\n1. Start your backend server (npm start)\n2. Check if server is running on port 5000\n3. Verify the server URL is correct`);
       } else if (error.response?.status === 404) {
-        setError(`❌ API endpoints not found on ${API_BASE}\n\n🔧 Solutions:\n1. Check if your backend routes are properly configured\n2. Verify the API endpoints exist\n3. Check server console for errors`);
+        setError(` API endpoints not found on ${API_BASE}\n\n🔧 Solutions:\n1. Check if your backend routes are properly configured\n2. Verify the API endpoints exist\n3. Check server console for errors`);
       } else {
-        setError(`❌ Backend error: ${error.message}`);
+        setError(` Backend error: ${error.message}`);
       }
     } finally {
       setLoading(false);
@@ -489,49 +468,3 @@ const Login = () => {
 };
 
 export default Login;
-
-// =============================================================================
-// 3. BACKEND SERVER TROUBLESHOOTING STEPS
-// =============================================================================
-
-/*
-STEP 1: Check if backend server is running
-----------------------------------------------
-Open terminal in your server folder and run:
-npm start
-or
-node server.js
-
-You should see output like:
-✅ MongoDB connected successfully to: localhost:27017
-📊 Database: shopsphere
-🚀 Starting SHOPSPHERE API...
-✅ All routes configured successfully
-Server listening on port 5000
-
-STEP 2: Test backend endpoints manually
-----------------------------------------------
-Open browser and test these URLs:
-1. http://localhost:5000/ (should show welcome message)
-2. http://localhost:5000/api (should show API info)
-3. http://localhost:5000/api/health (should show health status)
-
-STEP 3: Check backend routes configuration
-----------------------------------------------
-Make sure your server.js includes:
-- app.post('/api/auth/login', ...)
-- app.post('/api/auth/register', ...)
-- Proper route mounting
-
-STEP 4: Check CORS configuration
-----------------------------------------------
-Make sure your backend allows requests from http://localhost:3000
-
-STEP 5: Check MongoDB connection
-----------------------------------------------
-Ensure MongoDB is running and connected properly
-
-STEP 6: Environment variables
-----------------------------------------------
-Check if you have the right PORT and MONGODB_URI in your .env file
-*/

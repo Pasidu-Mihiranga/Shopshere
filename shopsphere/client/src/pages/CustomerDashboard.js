@@ -1,11 +1,9 @@
-// src/pages/CustomerDashboard.js
 import React, { useState, useEffect } from 'react';
 import { Link, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import Profile from '../components/CustomerDashboard/Profile';
 import Orders from '../components/CustomerDashboard/Orders';
-import Addresses from '../components/CustomerDashboard/Addresses';
 import './CustomerDashboard.css';
 
 const CustomerDashboard = () => {
@@ -39,7 +37,7 @@ const CustomerDashboard = () => {
     }
   }, [location.pathname]);
   
-  // Fetch user stats (optional - dashboard should work even if this fails)
+  // Fetch user stats 
   useEffect(() => {
     const fetchUserStats = async () => {
       if (!user) return;
@@ -48,15 +46,13 @@ const CustomerDashboard = () => {
         setStatsLoading(true);
         console.log('Fetching user stats...');
         
-        // This endpoint might not exist yet, so we'll make it optional
         const response = await axios.get('/api/user/stats');
         setUserStats(response.data);
         console.log('User stats loaded:', response.data);
         setError('');
       } catch (err) {
         console.warn('Could not fetch user stats (this is optional):', err);
-        // Don't show error for stats as it's not critical
-        // Keep default stats (all zeros)
+       
       } finally {
         setStatsLoading(false);
       }
@@ -72,7 +68,6 @@ const CustomerDashboard = () => {
     navigate('/');
   };
   
-  // This check is now handled by ProtectedRoute, but keep as safety net
   if (!user) {
     console.log('No user in CustomerDashboard, this should not happen if ProtectedRoute is working');
     return (
@@ -117,7 +112,6 @@ const CustomerDashboard = () => {
                   src={user.profileImage} 
                   alt={`${user.firstName}'s avatar`}
                   onError={(e) => {
-                    // Fallback if image fails to load
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'flex';
                   }}
@@ -173,22 +167,10 @@ const CustomerDashboard = () => {
                 </svg>
               </div>
               <span>Orders</span>
-              {!statsLoading && <span className="badge">{userStats.orderCount}</span>}
+              
             </Link>
             
-            <Link 
-              to="/dashboard/addresses" 
-              className={`nav-item ${activeTab === 'addresses' ? 'active' : ''}`}
-            >
-              <div className="nav-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                  <path fill="none" d="M0 0h24v24H0z"/>
-                  <path d="M12 20.9l4.95-4.95a7 7 0 1 0-9.9 0L12 20.9zm0 2.828l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" fill="currentColor"/>
-                </svg>
-              </div>
-              <span>Addresses</span>
-              {!statsLoading && <span className="badge">{userStats.addressCount}</span>}
-            </Link>
+            
             
             
             <button 
@@ -213,13 +195,11 @@ const CustomerDashboard = () => {
           </nav>
         </div>
         
-        {/* Content */}
         <div className="dashboard-content">
           <Routes>
             <Route path="/" element={<Profile />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/addresses" element={<Addresses />} />
           </Routes>
         </div>
       </div>

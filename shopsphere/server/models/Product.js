@@ -1,4 +1,3 @@
-// server/models/Product.js
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
@@ -35,11 +34,11 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   images: [{
-    type: String // URLs to product images
+    type: String 
   }],
   attributes: {
     type: Map,
-    of: mongoose.Schema.Types.Mixed // For dynamic attributes like color, size, etc.
+    of: mongoose.Schema.Types.Mixed 
   },
   inventory: {
     quantity: {
